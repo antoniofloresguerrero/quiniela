@@ -137,6 +137,24 @@
                 </tr>`;
         }
     }
+    /* funcion contraseña */
+
+    (function() {
+    const passCorrecta = "TuPassword123"; // Cambia esto por tu clave
+    const sesion = sessionStorage.getItem("acceso_concedido");
+
+    if (!sesion) {
+        const intento = prompt("Introduce la contraseña para acceder:");
+        if (intento === passCorrecta) {
+            sessionStorage.setItem("acceso_concedido", "true");
+        } else {
+            alert("Contraseña incorrecta");
+            window.location.reload(); // Recarga hasta que la ponga bien
+        }
+    }
+})();
+// fin funcion contraseña
+
 
     function crearBtns(id, max) {
         const cont = document.getElementById(id);
