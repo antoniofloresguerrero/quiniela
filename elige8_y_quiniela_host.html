@@ -295,29 +295,33 @@ input {
     </div>
 
     <!-- Contenedor flexible para Tarjeta + Premios -->
-    <div id="zona-nav" style="display:none; justify-content: center; gap: 20px; margin-top: 20px;">
-        
-        <!-- PARTE IZQUIERDA: Tarjeta y Navegación -->
-        <div class="panel-tarjeta" style="width: 450px;">
-            <div style="text-align:center; margin-bottom:10px">
-                <div id="txtPag" style="color:#f83838; font-weight:bold; margin-bottom:10px"></div>
-                <div style="display:flex; justify-content:space-between">
-                    <button class="btn-nav" onclick="irA(0)">|<<</button>
-                    <button class="btn-nav" onclick="cambiarIdx(-1)">ANT</button>
-                    <button class="btn-nav" onclick="cambiarIdx(1)">SIG</button>
-                    <button class="btn-nav" onclick="irA(validas.length-1)">>>|</button>
-                </div>
+    <!-- Contenedor principal centrado -->
+<div id="zona-nav" style="display:none; justify-content: center; align-items: flex-start; gap: 40px; margin: 30px auto; width: 100%; max-width: 1200px;">
+    
+    <!-- PARTE IZQUIERDA: Tarjeta y Navegación -->
+    <div class="panel-tarjeta" style="width: 450px; flex-shrink: 0;">
+        <div style="text-align:center; margin-bottom:15px; background: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid #334155;">
+            <div id="txtPag" style="color:#38bdf8; font-weight:bold; margin-bottom:10px; font-size: 1.1em;"></div>
+            <div style="display:flex; justify-content:space-between; gap: 5px;">
+                <button class="btn-nav" style="flex:1" onclick="irA(0)">|<<</button>
+                <button class="btn-nav" style="flex:2" onclick="cambiarIdx(-1)">ANTERIOR</button>
+                <button class="btn-nav" style="flex:2" onclick="cambiarIdx(1)">SIGUIENTE</button>
+                <button class="btn-nav" style="flex:1" onclick="irA(validas.length-1)">>>|</button>
             </div>
-            <div id="cardBox"></div>
         </div>
-
-       <!-- Nueva columna de premios -->
-<div id="premiosList" style="width: 250px; max-height: 550px; overflow-y: auto; background: #1e293b; border-radius: 8px; padding: 10px; border: 1px solid #334155;">
-    <h4 style="color: #38bdf8; text-align: center; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 5px;">Detalle Premios</h4>
-    <!-- IMPORTANTE: Este ID debe ser 'listaItems' -->
-    <div id="listaItems" style="font-family: monospace; font-size: 0.85em; color: white;"></div>
-</div>
+        <div id="cardBox"></div>
     </div>
+
+    <!-- PARTE DERECHA: Detalle de Premios Centrado -->
+    <div id="premiosList" style="width: 280px; height: 580px; overflow-y: auto; background: #1e293b; border-radius: 12px; padding: 15px; border: 1px solid #334155; box-shadow: 0 4px 20px rgba(0,0,0,0.4); flex-shrink: 0;">
+        <h4 style="color: #38bdf8; text-align: center; margin-top: 0; border-bottom: 2px solid #334155; padding-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9em;">
+            Detalle Premios
+        </h4>
+        <!-- Lista de items con margen interno para que no pegue al borde -->
+        <div id="listaItems" style="font-family: 'Segoe UI', monospace; font-size: 0.9em; color: white; margin-top: 10px;"></div>
+    </div>
+</div>
+
 </div>
 
     </div>
