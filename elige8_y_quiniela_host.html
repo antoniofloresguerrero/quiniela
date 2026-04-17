@@ -601,11 +601,14 @@ async function guardarFiltros() {
             conteoGlobal[aciertos]++;
             const color = aciertos === 14 ? "#fbbf24" : (aciertos >= 12 ? "#4ade80" : "#38bdf8");
             
-            detalleHTML += `
-                <div onclick="irA(${index})" style="display:flex; justify-content:space-between; padding:8px 5px; border-bottom:1px solid #334155; cursor:pointer; color:white;">
-                    <span>Boleto  ${index + 1}</span>
-                    <b style="color:${color}">${aciertos} Ac.</b>
-                </div>`;
+           detalleHTML += `
+    <div onclick="irA(${index})" 
+         style="display:flex; justify-content:space-between; align-items:center; padding: 10px 12px; margin-bottom: 5px; border-radius: 6px; background: rgba(51, 65, 85, 0.3); cursor: pointer; transition: 0.2s;"
+         onmouseover="this.style.background='rgba(56, 189, 248, 0.2)'" 
+         onmouseout="this.style.background='rgba(51, 65, 85, 0.3)'">
+        <span style="color: #94a3b8; font-size: 0.8em;">Boleto #${index + 1}</span>
+        <b style="color: ${colorPremio}; font-size: 1em; letter-spacing: 0.5px;">${aciertos} AC.</b>
+    </div>`;
         }
     });
 
