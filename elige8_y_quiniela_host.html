@@ -599,13 +599,24 @@ async function guardarFiltros() {
         // Solo registramos premios de 10 o más
         if (aciertos >= 10) {
             conteoGlobal[aciertos]++;
-            const color = aciertos === 14 ? "#fbbf24" : (aciertos >= 12 ? "#4ade80" : "#38bdf8");
-            
-            detalleHTML += `
-                <div onclick="irA(${index})" style="display:flex; justify-content:space-between; padding:8px 5px; border-bottom:1px solid #334155; cursor:pointer; color:white;">
-                    <span>Boleto #${index + 1}</span>
-                    <b style="color:${color}">${aciertos} Ac.</b>
-                </div>`;
+            // 1. Definimos los colores (Púm, directo)
+const coloresMap = {
+    14: "#fbbf24", // Dorado
+    13: "#a855f7", // Morado (puedes poner el que quieras)
+    12: "#38bdf8", // Azul
+    11: "#f87171", // Rojo
+    10: "#4ade80"  // Verde
+};
+
+// 2. Dentro del bucle, asignamos el color según los aciertos
+const colorFinal = coloresMap[aciertos] || "#ffffff";
+
+detalleHTML += `
+    <div onclick="irA(${index})" style="display:flex; justify-content:space-between; padding:8px 10px; border-bottom:1px solid #334155; cursor:pointer;">
+        <span style="color: #f8fafc;">Boleto #${index + 1}</span>
+        <b style="color: ${colorFinal} !important; font-weight: bold;">${aciertos} AC.</b>
+    </div>`;
+
         }
     });
 

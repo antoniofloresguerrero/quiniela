@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Elige8 PRO - Solución Final</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; padding: 10px; margin: 0; }
+        .box { background: #1e293b; padding: 20px; border-radius: 12px; max-width: 900px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        
+        .header-actions { display: flex; gap: 8px; margin-bottom: 15px; }
+        .btn-file { flex: 1; padding: 10px; background: transparent; border: 1px solid #38bdf8; color: #38bdf8; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.8em; text-align: center; }
+        .btn-file:hover { background: #38bdf8; color: #0f172a; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.8em; margin-bottom: 15px; }
+        th { background: #334155; color: #94a3b8; padding: 6px; text-transform: uppercase; }
+        td { padding: 4px; border-bottom: 1px solid #334155; text-align: center; }
+        input[type="number"] { background: #0f172a; color: #fbbf24; border: 1px solid #3b82f6; padding: 3px; border-radius: 4px; width: 55px; text-align: center; }
+
+        .filtros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+        .filtros label { display: block; font-size: 0.7em; color: #38bdf8; font-weight: bold; margin-bottom: 4px; }
+
+        .resumen-premios { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin-bottom: 15px; }
+        .card-premio { background: #0f172a; padding: 8px 2px; border-radius: 6px; text-align: center; border-bottom: 3px solid #334155; font-size: 0.7em; }
+        .card-premio b { font-size: 1.2em; color: #4ade80; }
+        .has-8 { border-bottom-color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
+
+        .input-real { width: 100%; padding: 12px; background: #1e3a8a; color: white; border: none; border-radius: 8px; text-align: center; letter-spacing: 12px; font-family: monospace; font-size: 1.3em; margin-bottom: 10px; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; background: #38bdf8; color: #0f172a; margin-bottom: 5px; }
+
+        /* ESTILOS TARJETA */
+        #betCard { background-color: #0b111b; border-radius: 12px; padding: 20px; color: #ffffff; max-width: 400px; margin: auto; border: 1px solid #1e293b; }
+        .paginador-info { color: #d93025; text-align: center; margin-bottom: 10px; font-weight: bold; }
+        .controles-pago { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+        .controles-pago button { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 6px 15px; border-radius: 4px; cursor: pointer; }
+        .header-col { color: #3b82f6; text-align: center; font-size: 12px; margin-bottom: 15px; text-transform: uppercase; }
+
+        .match-row { display: flex; justify-content: space-between; padding: 10px 15px; border-bottom: 1px solid #1e293b; font-size: 14px; align-items: center; }
+        .match-row.es-elige8 { background-color: #1e2d4a !important; border-bottom: 1px solid #2a3e5f; }
+        
+        .filas-container .match-row.es-elige8:nth-child(1) { border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .filas-container .match-row:nth-child(7) { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; border-bottom: none; margin-bottom: 4px; }
+        .filas-container .match-row:nth-child(12) { border-radius: 8px; margin-top: 4px; border-bottom: none; }
+
+        .num { color: #64748b; margin-right: 10px; }
+        .signo { color: #3b82f6; font-weight: bold; width: 20px; text-align: right; }
+        .hit { color: #4ade80 !important; font-weight: bold; }
+
+        .footer-aciertos { display: flex; justify-content: space-around; margin-top: 15px; padding-top: 15px; border-top: 1px solid #1e293b; text-align: center; }
+        .bloque-acierto span { font-size: 10px; color: #64748b; display: block; }
+        .count-val { font-size: 24px; color: #22c55e; }
+        .color-e8 { color: #3b82f6; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <div class="header-actions">
+        <label class="btn-file">📂 ABRIR JSON/TXT
+            <input type="file" id="fileInput" style="display:none" onchange="procesarArchivo(this)">
+        </label>
+    </div>
+
+    <table>
+        <thead><tr><th>P</th><th>Cuota 1</th><th>Cuota X</th><th>Cuota 2</th><th>Base</th></tr></thead>
+        <tbody id="cuerpoCuotas"></tbody>
+    </table>
+
+    <div class="filtros">
+        <div><label>BASES</label><input type="number" id="minB" value="3"> - <input type="number" id="maxB" value="8"></div>
+        <div><label>DIFÍCILES</label><input type="number" id="minD" value="0"> - <input type="number" id="maxD" value="4"></div>
+        <div><label>UNOS</label><input type="number" id="min1" value="2"> - <input type="number" id="max1" value="7"></div>
+    </div>
+
+    <button class="btn-main" onclick="calcular()">GENERAR Y FILTRAR</button>
+    <button class="btn-main" style="background:#4ade80" onclick="descargarArchivo()">📥 DESCARGAR TXT</button>
+
+    <input type="text" id="resultadoReal" class="input-real" placeholder="21XX1121" maxlength="8" oninput="escrutar()">
+    
+    <div id="resumenPremios" class="resumen-premios"></div>
+    <div id="betCard"></div>
+</div>
+
+<script>
+const matriz27 = ["11111","11X2X","112X2","1X122","1XX1X","1X2XX","121XX","12X12","12221","X11XX","X1X12","X1221","XX111","XXX2X","XX2X2","X212X","X2X22","X221X","21122","21X1X","212XX","2X1XX","2XX12","2X221","22111","22X2X","222X2"];
+const partidosElige = [1, 2, 3, 4, 5, 6, 7, 12];
+const equipos = [
+    "ATH.CLUB - OSASUNA",
+    "BARCELONA - CELTA",
+    "LEVANTE - SEVILLA",
+    "MALLORCA - VALENCIA",
+    "R.OVIEDO - VILLARREAL",
+    "R.MADRID - ALAVÉS",
+    "ELCHE - AT.MADRID",
+    "RAYO - ESPANYOL",
+    "R.SOCIEDAD - GETAFE",
+    "COVENTRY - PORTSMOUTH",
+    "QUENN'S PARK R. - SWANSEA",
+    "SOUTHAMPTON - BRISTOL CITY",
+    "CHARLTON - IPSWICH",
+    "LEICESTER - HULL"
+];
+
+let pInfo = {}; 
+let apuestasFinales = [];
+let indiceActual = 0;
+
+function init() {
+    const tbody = document.getElementById('cuerpoCuotas');
+    tbody.innerHTML = "";
+    partidosElige.forEach(p => {
+        tbody.innerHTML += `<tr><td><b>P${p}</b></td>
+            <td><input type="number" step="0.01" value="1.8" id="c1_${p}" onchange="analizar(${p})"></td>
+            <td><input type="number" step="0.01" value="3.4" id="cX_${p}" onchange="analizar(${p})"></td>
+            <td><input type="number" step="0.01" value="4.2" id="c2_${p}" onchange="analizar(${p})"></td>
+            <td id="det-${p}"></td></tr>`;
+        analizar(p);
+    });
+    renderizarTarjeta("");
+}
+
+function analizar(p) {
+    const v1 = parseFloat(document.getElementById(`c1_${p}`).value) || 0;
+    const vX = parseFloat(document.getElementById(`cX_${p}`).value) || 0;
+    const v2 = parseFloat(document.getElementById(`c2_${p}`).value) || 0;
+    const vals = [{s:"1",v:v1}, {s:"X",v:vX}, {s:"2",v:v2}].sort((a,b) => a.v - b.v);
+    pInfo[p] = { base: vals[0].s, diff: vals[2].s };
+    document.getElementById(`det-${p}`).innerText = vals[0].s;
+}
+
+function calcular() {
+    const minB = parseInt(document.getElementById('minB').value);
+    const maxB = parseInt(document.getElementById('maxB').value);
+    const minD = parseInt(document.getElementById('minD').value);
+    const maxD = parseInt(document.getElementById('maxD').value);
+    const min1 = parseInt(document.getElementById('min1').value);
+    const max1 = parseInt(document.getElementById('max1').value);
+    
+    apuestasFinales = [];
+    const tP = [1, 3, 4, 5, 7]; 
+    const fP = [2, 6, 12];
+
+    matriz27.forEach(fila => {
+        const signosM = fila.split('');
+        let dict = {};
+        tP.forEach((p, k) => dict[p] = signosM[k]);
+        fP.forEach(p => dict[p] = pInfo[p].base);
+
+        let nB=0, nD=0, n1=0;
+        partidosElige.forEach(p => {
+            if(dict[p] === pInfo[p].base) nB++;
+            if(dict[p] === pInfo[p].diff) nD++;
+            if(dict[p] === "1") n1++;
+        });
+
+        if(nB >= minB && nB <= maxB && nD >= minD && nD <= maxD && n1 >= min1 && n1 <= max1) {
+            apuestasFinales.push({...dict});
+        }
+    });
+    indiceActual = 0;
+    escrutar();
+}
+
+function procesarArchivo(input) {
+    if (!input.files[0]) return;
+    const lector = new FileReader();
+    lector.onload = (e) => {
+        const contenido = e.target.result;
+        try {
+            const data = JSON.parse(contenido);
+            if (data.cuotas) { /* Carga opcional de cuotas */ }
+            apuestasFinales = data.apuestas || (Array.isArray(data) ? data : []);
+        } catch (err) {
+            apuestasFinales = contenido.split(/\r?\n/).filter(l => l.trim().length >= 14);
+        }
+        indiceActual = 0;
+        escrutar();
+    };
+    lector.readAsText(input.files[0]);
+}
+
+function escrutar() {
+    const real = document.getElementById('resultadoReal').value.toUpperCase().replace(/\s+/g, '');
+    const conteo = {8:0, 7:0, 6:0, 5:0, 4:0, 3:0, 2:0, 1:0, 0:0};
+    
+    if(real.length === 8) {
+        apuestasFinales.forEach(ap => {
+            let ac = 0;
+            // Corregimos la comparación: i es la posición en el input (0-7)
+            // p es el número del partido (1, 2, 3, 4, 5, 6, 7, 12)
+            partidosElige.forEach((p, i) => { 
+                const signoApuesta = (typeof ap === 'string') ? ap[p-1] : ap[p];
+                if(signoApuesta === real[i]) ac++; 
+            });
+            conteo[ac]++;
+        });
+    }
+
+    // Dibujar tarjetas de premios
+    let h = "";
+    for(let i=8; i>=0; i--) {
+        h += `<div class="card-premio ${i>=7 && conteo[i]>0 ? 'has-8' : ''}">
+                <span>${i} AC.</span><br>
+                <b>${conteo[i]}</b>
+              </div>`;
+    }
+    document.getElementById('resumenPremios').innerHTML = h;
+    
+    // Actualizamos la tarjeta visual para marcar los "hits" en verde
+    renderizarTarjeta(real);
+}
+
+function renderizarTarjeta(real) {
+    const cont = document.getElementById('betCard');
+    if (!apuestasFinales || apuestasFinales.length === 0) {
+        cont.innerHTML = "<div style='padding:20px;text-align:center;'>No hay apuestas generadas.</div>";
+        return;
+    }
+
+    const ap = apuestasFinales[indiceActual];
+    let acE8 = 0;
+
+    let h = `
+        <div class="paginador-info">Quiniela nº ${indiceActual + 1} / ${apuestasFinales.length}</div>
+        <div class="controles-pago">
+            <button onclick="cambiarPagina('primera')">|<<</button>
+            <button onclick="cambiarPagina('ant')">ANT</button>
+            <button onclick="cambiarPagina('sig')">SIG</button>
+            <button onclick="cambiarPagina('ultima')">>>|</button>
+        </div>
+        <div class="header-col">COLUMNA ${indiceActual + 1} DE ${apuestasFinales.length}</div>
+        <div class="filas-container">
+    `;
+
+    for (let i = 0; i < 14; i++) {
+        const num = i + 1;
+        const esE8 = partidosElige.includes(num);
+        const signo = (typeof ap === 'string') ? (ap[i] || '-') : (ap[num] || '-');
+        let hitClass = "";
+
+        // Si el partido es del Elige8 y hemos puesto un resultado real
+        if (esE8 && real.length === 8) {
+            const idxReal = partidosElige.indexOf(num);
+            if (signo === real[idxReal]) {
+                acE8++;
+                hitClass = "hit"; // Esta clase lo pone en verde
+            }
+        }
+
+        h += `<div class="match-row ${esE8 ? 'es-elige8' : ''} ${hitClass}">
+                <div><span class="num">${num}.</span> ${equipos[i]}</div>
+                <div class="signo">${signo}</div>
+              </div>`;
+    }
+
+    h += `</div><div class="footer-aciertos">
+        <div class="bloque-acierto"><span>ACIERTOS 14</span><b class="count-val">--</b></div>
+        <div class="bloque-acierto"><span>ACIERTOS E8</span><b class="count-val color-e8">${acE8}</b></div>
+    </div>`;
+    cont.innerHTML = h;
+}
+
+
+function cambiarPagina(accion) {
+    if (accion === 'primera') indiceActual = 0;
+    else if (accion === 'ant' && indiceActual > 0) indiceActual--;
+    else if (accion === 'sig' && indiceActual < apuestasFinales.length - 1) indiceActual++;
+    else if (accion === 'ultima') indiceActual = apuestasFinales.length - 1;
+    escrutar();
+}
+
+// 2. FUNCIÓN DE DESCARGA CONFIGURADA PARA LA ADMINISTRACIÓN
+function descargarArchivo() {
+    if (apuestasFinales.length === 0) return alert("No hay apuestas para descargar.");
+
+    const txtContenido = apuestasFinales.map(ap => {
+        let linea14 = Array(14).fill("1"); // Relleno por defecto para los que no son Elige8
+        
+        // Colocamos tus pronósticos en sus posiciones (1-7 y 12)
+        partidosElige.forEach(p => {
+            // Si ap es objeto usamos ap[p], si es string usamos ap[p-1]
+            linea14[p - 1] = (typeof ap === 'object') ? ap[p] : ap[p - 1];
+        });
+
+        // Formato final: 14 signos + Pleno al 15 (Girona-Betis)
+        // He puesto "MM" (2 o más goles cada uno), cámbialo si prefieres otro como "10", "21", etc.
+        return linea14.join('') + "MM"; 
+    }).join('\n');
+
+    // Cálculo de precio para que lo sepas antes de enviarlo
+    const costeQuiniela = apuestasFinales.length * 0.75;
+    const costeElige8 = apuestasFinales.length * 0.50;
+    const total = costeQuiniela + costeElige8;
+
+    alert(`Archivo listo para la administración.\n` +
+          `Apuestas: ${apuestasFinales.length}\n` +
+          `Coste total (Quiniela + Elige8): ${total.toFixed(2)} €`);
+
+    // Crear y descargar el archivo
+    const blob = new Blob([txtContenido], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `quiniela_j58_elige8.txt`;
+    link.click();
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
