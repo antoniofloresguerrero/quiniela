@@ -300,7 +300,7 @@ input {
         <!-- PARTE IZQUIERDA: Tarjeta y Navegación -->
         <div class="panel-tarjeta" style="width: 450px;">
             <div style="text-align:center; margin-bottom:10px">
-                <div id="txtPag" style="color:#f83838; font-weight:bold; margin-bottom:10px"></div>
+                <div id="txtPag" style="color:#38bdf8; font-weight:bold; margin-bottom:10px"></div>
                 <div style="display:flex; justify-content:space-between">
                     <button class="btn-nav" onclick="irA(0)">|<<</button>
                     <button class="btn-nav" onclick="cambiarIdx(-1)">ANT</button>
@@ -827,7 +827,7 @@ function pitar() {
         r[i] = document.getElementById(`R${i}`)?.value.trim().toUpperCase() || "";
     }
 
-    let h = `<div style="text-align:center; color:#38bdf8; font-weight:bold; margin-bottom:10px; background:#1e293b; padding:5px; border-radius:5px;">COLUMNA ${idx+1} de ${validas.length}</div>`;
+    let h = `<div style="text-align:center; color:#38bdf8; font-weight:bold; margin-bottom:10px; background:#1e293b; padding:5px; border-radius:5px;"></div>`;
 
     for (let i = 1; i <= 14; i++) {
         const local = document.getElementById(`L${i}`)?.value || "Local";
