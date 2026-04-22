@@ -288,7 +288,7 @@ input {
     <div class="zona-tabla">
         <table>
             <thead>
-                <tr><th>P</th><th>Equipos</th><th>1</th><th>X</th><th>2</th><th>An.</th><th>Pronóstico</th><th>E8</th><th>R. Real</th><th>1X2</th></tr>
+                <tr><th>P</th><th>Equipos</th><th>1</th><th>X</th><th>2</th><th>Base</th><th>Difícil</th><th>Pronóstico</th><th>E8</th><th>Elige_8</th><th>1X2</th></tr>
             </thead>
             <tbody id="cuerpoTabla"></tbody>
         </table>
@@ -419,56 +419,7 @@ function actualizarVisoresTexto() {
 }
 
 
-  function poblarTabla(partidos) {
-    const tbody = document.getElementById('cuerpoTabla');
-    if (!tbody) return console.error("No existe cuerpoTabla");
-
-    let h = ''; 
-    partidos.forEach((p, i) => {
-        const n = i + 1;
-        if (n > 15) return;
-
-        // Normalizar los valores que vienen del servidor o del modo local
-        const v1 = p.c1 || p.cuota1 || 0;
-        const vX = p.cx || p.cX || p.cuotax || p.cuotaX || 0;
-        const v2 = p.c2 || p.cuota2 || 0;
-
-        if (n <= 14) {
-            h += `<tr id="fila_${n}">
-                <td><b>${n}</b></td>
-                <td>
-                    <input class="in-equipo" id="L${n}" value="${p.local || ''}"> 
-                    <input class="in-equipo" id="V${n}" value="${p.visitante || ''}">
-                </td>
-                <td><input type="number" step="0.1" class="in-cuota" id="c1_${n}" value="${v1}" oninput="if(window.analizar) analizar(${n})"></td>
-                <td><input type="number" step="0.1" class="in-cuota" id="cX_${n}" value="${vX}" oninput="if(window.analizar) analizar(${n})"></td>
-                <td><input type="number" step="0.1" class="in-cuota" id="c2_${n}" value="${v2}" oninput="if(window.analizar) analizar(${n})"></td>
-                <td id="an_${n}" style="color:#ffcc00; font-weight:bold">-</td>
-                <td><input type="text" class="in-pro" id="pro${n}" value="${p.pronostico || ''}" oninput="contarDoblesTriples()"></td>
-                <td><input type="text" class="in-pro" id="pro${n}" value="${p.pronostico || ''}" oninput="contarDoblesTriples()"></td>
-
-                <td><input type="checkbox" class="check-e8" id="e8_${n}" ${p.elige8 ? 'checked' : ''}></td>
-                <td><input type="text" class="in-res-real" id="R${n}" value="${p.resultado_real || ''}" 
-    oninput="if(window.pitar) pitar(); if(window.ejecutarEscrutinio) ejecutarEscrutinio();" 
-    onchange="autoGuardar(${n})"></td>
-                <td id="res_${n}" style="color:#00d4ff; font-weight:bold">-</td>
-            </tr>`;
-        }
-    });
-
-    tbody.innerHTML = h;
-    console.log("Tabla poblada con cuotas:", partidos.length);
-    
-    // Ejecutamos análisis inicial con un pequeño retraso
-    setTimeout(() => {
-        for(let j=1; j<=14; j++) {
-            if(document.getElementById(`c1_${j}`) && window.analizar) analizar(j);
-            
-        }
-         // --- AÑADE ESTA LÍNEA AQUÍ ---
-        if (window.contarDoblesTriples) contarDoblesTriples();
-    }, 500);
-}
+  
 
 async function autoGuardar() {
     try {
@@ -680,10 +631,56 @@ function irA(n) {
 
 
     function exportarTXT() {
-        const p = document.getElementById('p15L').value + document.getElementById('p15V').value;
-        const txt = validas.map(ap => ap.map(x => x.s).join('') + p).join("\r\n");
-        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], {type:'text/plain'})); a.download = "quiniela.txt"; a.click();
+    // 1. Verificación ultra-segura de las apuestas
+    if (typeof validas === 'undefined' || !validas || !Array.isArray(validas) || validas.length === 0) {
+        alert("No hay columnas generadas.");
+        return;
     }
+
+    // 2. Captura del Pleno al 15 SIN RIESGO de error 'null'
+    let gL = "M"; 
+    let gV = "1";
+    
+    // Intentamos capturar el valor solo si el elemento existe de verdad
+    const elemLocal = document.getElementById('p15L');
+    const elemVisit = document.getElementById('p15V');
+    
+    if (elemLocal !== null) { gL = elemLocal.value; }
+    if (elemVisit !== null) { gV = elemVisit.value; }
+    
+    const pleno = gL + gV;
+
+    // 3. Construcción del contenido del archivo
+    try {
+        const contenidoTXT = validas.map(columna => {
+            let fila14 = Array(14).fill("1");
+            
+            columna.forEach(partido => {
+                if (partido && partido.id) {
+                    fila14[partido.id - 1] = partido.s;
+                }
+            });
+            
+            return fila14.join('') + pleno;
+        }).join("\r\n");
+
+        // 4. Proceso de descarga automática
+        const blob = new Blob([contenidoTXT], { type: 'text/plain' });
+        const enlaceDescarga = document.createElement('a');
+        enlaceDescarga.href = URL.createObjectURL(blob);
+        enlaceDescarga.download = "quiniela_valida.txt";
+        
+        document.body.appendChild(enlaceDescarga);
+        enlaceDescarga.click();
+        document.body.removeChild(enlaceDescarga);
+        URL.revokeObjectURL(enlaceDescarga.href);
+
+    } catch (err) {
+        console.error("Fallo en el procesado de datos:", err);
+        alert("Error crítico al generar el texto. Revisa la consola (F12).");
+    }
+}
+
 // 1. GENERAR: Lógica corregida para procesar todas las columnas
 async function generarApp(esModoE8) {
     modoE8Actual = esModoE8;
@@ -1124,6 +1121,101 @@ function descargarColumnasE8() {
     link.download = `apuestas_e8_${filtradas.length}.txt`;
     link.click();
 }
+
+function poblarTabla(partidos) {
+    const tbody = document.getElementById('cuerpoTabla');
+    if (!tbody) return console.error("No existe cuerpoTabla");
+
+    let h = ''; 
+    partidos.forEach((p, i) => {
+        const n = i + 1;
+        if (n > 15) return;
+
+        // Normalizar cuotas para que acepten cualquier formato de nombre
+        const v1 = p.c1 || p.cuota1 || 1.0;
+        const vX = p.cx || p.cX || p.cuotax || p.cuotaX || 1.0;
+        const v2 = p.c2 || p.cuota2 || 1.0;
+
+        if (n <= 14) {
+            h += `<tr id="fila_${n}">
+                <td><b>${n}</b></td>
+                <td>
+                    <input class="in-equipo" id="L${n}" value="${p.local || ''}" placeholder="Local"> 
+                    <input class="in-equipo" id="V${n}" value="${p.visitante || ''}" placeholder="Visitante">
+                </td>
+                <td><input type="number" step="0.1" class="in-cuota" id="c1_${n}" value="${v1}" oninput="analizar(${n})"></td>
+                <td><input type="number" step="0.1" class="in-cuota" id="cX_${n}" value="${vX}" oninput="analizar(${n})"></td>
+                <td><input type="number" step="0.1" class="in-cuota" id="c2_${n}" value="${v2}" oninput="analizar(${n})"></td>
+                
+                <!-- Celda de Análisis (Base/Favorito) -->
+                <td id="an_${n}" style="color:#ffcc00; font-weight:bold">-</td>
+
+                   <!-- SORPRESA (Cuota más alta) -->
+                <td id="di_${n}" style="color:#f87171; font-weight:bold">-</td>
+                
+                <!-- Pronóstico (Corregido: Solo uno) -->
+                <td><input type="text" class="in-pro" id="pro${n}" value="${p.pronostico || '1X2'}" oninput="contarDoblesTriples()"></td>
+
+                <!-- Elige 8 -->
+                <td><input type="checkbox" class="check-e8" id="e8_${n}" ${p.elige8 ? 'checked' : ''} onchange="contarDoblesTriples()"></td>
+                
+                <!-- Resultado Real y Acierto -->
+                <td><input type="text" class="in-res-real" id="R${n}" value="${p.resultado_real || ''}" 
+                    oninput="if(window.pitar) pitar(); if(window.ejecutarEscrutinio) ejecutarEscrutinio();"></td>
+                <td id="res_${n}" style="color:#00d4ff; font-weight:bold">-</td>
+            </tr>`;
+        }
+    });
+
+    tbody.innerHTML = h;
+    
+    // Forzamos el análisis inicial de todas las filas generadas
+    setTimeout(() => {
+        for(let j=1; j<=14; j++) {
+            analizar(j);
+        }
+        if (window.contarDoblesTriples) contarDoblesTriples();
+    }, 100);
+}
+
+// ESTA ES LA FUNCIÓN QUE RELLENA EL CUADRO 'an_'
+function analizar(n) {
+    const c1 = parseFloat(document.getElementById(`c1_${n}`)?.value) || 0;
+    const cX = parseFloat(document.getElementById(`cX_${n}`)?.value) || 0;
+    const c2 = parseFloat(document.getElementById(`c2_${n}`)?.value) || 0;
+    
+    const cellBase = document.getElementById(`an_${n}`);
+    const cellDiff = document.getElementById(`di_${n}`);
+    if (!cellBase || !cellDiff) return;
+
+    const cuotas = [
+        { s: '1', v: c1 },
+        { s: 'X', v: cX },
+        { s: '2', v: c2 }
+    ].filter(o => o.v > 0);
+
+    if (cuotas.length > 0) {
+        // Ordenamos las cuotas de menor a mayor
+        const ordenadas = [...cuotas].sort((a, b) => a.v - b.v);
+        
+        // El primero es la Base (cuota más baja)
+        cellBase.innerText = ordenadas[0].s;
+        
+        // El último es el Difícil (cuota más alta)
+        // Solo lo mostramos si hay al menos 2 cuotas distintas
+        if (ordenadas.length > 1) {
+            cellDiff.innerText = ordenadas[ordenadas.length - 1].s;
+        } else {
+            cellDiff.innerText = "-";
+        }
+    } else {
+        cellBase.innerText = "-";
+        cellDiff.innerText = "-";
+    }
+}
+
+
+
 
 function cargarProyectoCompleto(event) {
     const input = event.target;
