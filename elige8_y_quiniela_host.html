@@ -9,6 +9,78 @@
 
     <title>Quiniela Pro 2025-2026</title>
 <style>
+/* Contenedor horizontal ajustado */
+.herramientas-unificadas {
+    display: flex;
+    gap: 10px; /* Reducimos el espacio entre cajas para que quepan mejor */
+    flex-wrap: nowrap; /* Forzamos que intenten estar en una fila */
+    overflow-x: auto; /* Si la pantalla es muy pequeña, sale scroll en lugar de romperse */
+    padding: 10px;
+    background: #0f172a;
+}
+
+/* Tarjeta base */
+.filtro-card {
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #334155;
+    border-bottom: 4px solid #38bdf8;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Cajas de FILTROS (Anchas) */
+.filtro-card:nth-child(1), 
+.filtro-card:nth-child(2), 
+.filtro-card:nth-child(3) {
+    flex: 2; /* Tienen más prioridad de ancho */
+    min-width: 200px;
+}
+
+/* Cajas de DATOS (Estrechas: Escrutinio y Garantías) */
+.filtro-card:nth-child(4), 
+.filtro-card:nth-child(5) {
+    flex: 1; /* Son más estrechas */
+    min-width: 140px; /* Ancho mínimo reducido */
+}
+
+.filtro-card h3, .filtro-card h4 {
+    color: #38bdf8;
+    margin: 0 0 10px 0;
+    font-size: 0.85em; /* Título un poco más pequeño para ahorrar espacio */
+    text-transform: uppercase;
+}
+
+.fila-e, .linea-card {
+    font-size: 0.8em; /* Texto de datos más compacto */
+    padding: 4px 0;
+}
+
+
+
+
+/* Estilo para los botones dentro de las tarjetas */
+.btn-f {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-f.active {
+    background: #38bdf8;
+    color: #0f172a;
+    font-weight: bold;
+    box-shadow: 0 0 10px #38bdf8;
+}
+
+
+
+
+
 
         body { font-family: 'Segoe UI', sans-serif; background: #0f2a23; color: #f8fafc; padding: 10px; font-size: 12px; margin: 0; }
        @media (max-width: 768px) {
@@ -208,40 +280,32 @@ input {
     
 
     <div class="herramientas-unificadas">
-        <div class="caja-filtros">
-            <div class="filtro-card">
-                <h3>Filtros 1ª DIV (P1-P8)</h3>
-                <div class="grupo-f" data-label="Unos: "><div class="btns-f" id="btns-u-1"></div><div class="res-v" id="f-u-1"></div></div>
-                <div class="grupo-f" data-label="Base: "><div class="btns-f" id="btns-b-1"></div><div class="res-v" id="f-b-1"></div></div>
-                <div class="grupo-f" data-label="Dif: "><div class="btns-f" id="btns-d-1"></div><div class="res-v" id="f-d-1"></div></div>
-            </div>
-            <div class="filtro-card">
-                <h3>Filtros 2ª DIV (P9-P14)</h3>
-                <div class="grupo-f" data-label="Unos: "><div class="btns-f" id="btns-u-2"></div><div class="res-v" id="f-u-2"></div></div>
-                <div class="grupo-f" data-label="Base: "><div class="btns-f" id="btns-b-2"></div><div class="res-v" id="f-b-2"></div></div>
-                <div class="grupo-f" data-label="Dif: "><div class="btns-f" id="btns-d-2"></div><div class="res-v" id="f-d-2"></div></div>
-            </div>
-            
-            <!-- Columna 3: NUEVA CAJA DE GARANTÍAS -->
-    <div class="filtro-card" id="caja-garantias">
-        <h3>Garantías</h3>
-        <div id="display-garantias">
-            <div class="linea-card"><span>Al 14:</span> <b id="g-14" style="color:#f87171">0%</b></div>
-            <div class="linea-card"><span>Al 13:</span> <b id="g-13" style="color:#fbbf24">0%</b></div>
-            <div class="linea-card"><span>Al 12:</span> <b id="g-12" style="color:#4ade80">0%</b></div>
-            <div class="linea-card"><span>Al 11:</span> <b id="g-11" style="color:#4ade80">0%</b></div>
-            <div class="linea-card"><span>Al 10:</span> <b id="g-10" style="color:#4ade80">0%</b></div>
-        </div>
-    </div>
-        </div>
-     <!-- PANEL EXCLUSIVO ELIGE 8 -->
-<div id="filtros-e8-exclusivos" style="background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #38bdf8; margin: 10px 0;">
-    <h4 style="color: #38bdf8; margin-top: 0;">Filtros Elige 8</h4>
     
-    <div style="margin-bottom: 10px;">
-        <span style="color: #38bdf8; font-size: 1.2em;">BASES:</span>
-        <div id="btns-e8b" style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px;">
-            <!-- Botones del 0 al 8 -->
+    <!-- Filtros 1ª DIV -->
+    <div class="filtro-card">
+        <h3>Filtros 1ª DIV (P1-P8)</h3>
+        <div class="grupo-f" data-label="Unos: "><div class="btns-f" id="btns-u-1"></div></div>
+        <div class="grupo-f" data-label="Base: "><div class="btns-f" id="btns-b-1"></div></div>
+        <div class="grupo-f" data-label="Dif: "><div class="btns-f" id="btns-d-1"></div></div>
+    </div>
+
+    <!-- Filtros 2ª DIV -->
+    <div class="filtro-card">
+        <h3>Filtros 2ª DIV (P9-P14)</h3>
+        <div class="grupo-f" data-label="Unos: "><div class="btns-f" id="btns-u-2"></div></div>
+        <div class="grupo-f" data-label="Base: "><div class="btns-f" id="btns-b-2"></div></div>
+        <div class="grupo-f" data-label="Dif: "><div class="btns-f" id="btns-d-2"></div></div>
+    </div>
+
+    <!-- Filtros Elige 8 -->
+    <!-- Filtros Elige 8 Unificado -->
+<div class="filtro-card">
+    <h3>Filtros Elige 8</h3>
+    
+    <div style="margin-bottom: 15px;">
+        <span style="color: #38bdf8; font-size: 0.9em; font-weight: bold; display: block; margin-bottom: 8px;">BASES:</span>
+        <div id="btns-e8b" style="display: flex; gap: 4px; flex-wrap: wrap;">
+            <!-- Generamos del 0 al 8 -->
             <button class="btn-f" onclick="this.classList.toggle('active')">0</button>
             <button class="btn-f" onclick="this.classList.toggle('active')">1</button>
             <button class="btn-f" onclick="this.classList.toggle('active')">2</button>
@@ -255,8 +319,8 @@ input {
     </div>
 
     <div>
-        <span style="color: #38bdf8; font-size: 1.2em;">DIFÍCILES:</span>
-        <div id="btns-e8d" style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px;">
+        <span style="color: #38bdf8; font-size: 0.9em; font-weight: bold; display: block; margin-bottom: 8px;">DIFÍCILES:</span>
+        <div id="btns-e8d" style="display: flex; gap: 4px; flex-wrap: wrap;">
             <button class="btn-f" onclick="this.classList.toggle('active')">0</button>
             <button class="btn-f" onclick="this.classList.toggle('active')">1</button>
             <button class="btn-f" onclick="this.classList.toggle('active')">2</button>
@@ -268,20 +332,30 @@ input {
             <button class="btn-f" onclick="this.classList.toggle('active')">8</button>
         </div>
     </div>
-    
 </div>
 
-        <div class="caja-escrutinio" style="background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #38bdf8; margin: 10px 0;">
-            <h3 style="color:#38bdf8">Escrutinio</h3>
-            <!--<button onclick="ejecutarEscrutinio()" class="btn-main" style="background:#22c55e; width:100%; margin-bottom:10px">ESCRUTAR</button>-->
-            <div class="fila-e">14: <b id="esc-14">0</b></div>
-            <div class="fila-e">13: <b id="esc-13">0</b></div>
-            <div class="fila-e">12: <b id="esc-12">0</b></div>
-            <div class="fila-e">11: <b id="esc-11">0</b></div>
-            <div class="fila-e">10: <b id="esc-10">0</b></div>
-        </div>
-        
+    <!-- Escrutinio -->
+    <div class="filtro-card">
+        <h3>Escrutinio</h3>
+        <div class="fila-e">14 aciertos: <b id="esc-14">0</b></div>
+        <div class="fila-e">13 aciertos: <b id="esc-13">0</b></div>
+        <div class="fila-e">12 aciertos: <b id="esc-12">0</b></div>
+        <div class="fila-e">11 aciertos: <b id="esc-11">0</b></div>
+        <div class="fila-e">10 aciertos: <b id="esc-10">0</b></div>
     </div>
+
+    <!-- Garantías -->
+    <div class="filtro-card">
+        <h3>Garantías</h3>
+        <div class="linea-card"><span>Al 14:</span> <b id="g-14" style="color:#f87171">0%</b></div>
+        <div class="linea-card"><span>Al 13:</span> <b id="g-13" style="color:#fbbf24">0%</b></div>
+        <div class="linea-card"><span>Al 12:</span> <b id="g-12" style="color:#4ade80">0%</b></div>
+        <div class="linea-card"><span>Al 11:</span> <b id="g-11" style="color:#4ade80">0%</b></div>
+        <div class="linea-card"><span>Al 10:</span> <b id="g-10" style="color:#4ade80">0%</b></div>
+    </div>
+
+</div>
+
 
     <div class="layout-main">
     <div class="zona-tabla">
