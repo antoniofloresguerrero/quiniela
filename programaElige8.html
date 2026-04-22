@@ -50,12 +50,12 @@ th:nth-child(5), td:nth-child(5), th:nth-child(6), td:nth-child(6) { width: 9%; 
 <div class="box">
     <!-- AQUÍ ESTÁN LOS BOTONES -->
     <div class="header-actions">
-        <label class="btn-file">📂 ABRIR JSON <input type="file" id="inputAbrir" style="display:none" accept=".json" onchange="abrirArchivo(event)"></label>
-        <button class="btn-file" onclick="guardarArchivo()">💾 GUARDAR JSON</button>
+        <label class="btn-file">📂 ABRIR <input type="file" id="inputAbrir" style="display:none" accept=".json" onchange="abrirArchivo(event)"></label>
+        <button class="btn-file" onclick="guardarArchivo()">💾 GUARDAR</button>
     </div>
 
     <table>
-        <thead><tr><th>Equipos</th><th>C1</th><th>CX</th><th>C2</th><th>Base</th><th>Difícil</th></tr></thead>
+        <thead><tr><th>Equipos</th><th>1</th><th>X</th><th>2</th><th>Base</th><th>Difícil</th></tr></thead>
         <tbody id="cuerpoCuotas"></tbody>
     </table>
 
@@ -66,7 +66,7 @@ th:nth-child(5), td:nth-child(5), th:nth-child(6), td:nth-child(6) { width: 9%; 
     </div>
 
     <button class="btn-main" onclick="calcular()">GENERAR Y FILTRAR</button>
-    <button class="btn-main" style="background:#4ade80" onclick="descargarArchivo()">📥 DESCARGAR TXT (PLENO MM)</button>
+    <button class="btn-main" style="background:#4ade80" onclick="descargarArchivo()">📥 DESCARGAR TXT</button>
 
     <input type="text" id="resultadoReal" class="input-real" placeholder="21XX1121" maxlength="8" oninput="escrutar()">
     
@@ -89,20 +89,35 @@ function init() {
     tbody.innerHTML = "";
 
     partidosElige.forEach(p => {
-        const nombre = equipos[p - 1] || "Partido " + p;
+        // Cargamos el nombre del array o lo dejamos vacío si no hay
+        const nombrePorDefecto = equipos[p - 1] || "";
+
         tbody.innerHTML += `<tr>
             <td style="text-align:left; padding-left:10px;">
-                <b style="color:#38bdf8">${p}.</b> ${nombre}
+                <b style="color:#38bdf8">${p}.</b> 
+                <input type="text" id="nom_${p}" value="${nombrePorDefecto}" 
+                       placeholder="Nombre equipo..." 
+                       style="background:transparent; border:none; border-bottom:1px solid #334155; color:white; width:80%; font-size:0.9em;"
+                       onchange="actualizarNombre(${p})">
             </td>
             <td><input type="number" step="0.01" value="1.80" id="c1_${p}" onchange="analizar(${p})"></td>
             <td><input type="number" step="0.01" value="3.40" id="cX_${p}" onchange="analizar(${p})"></td>
             <td><input type="number" step="0.01" value="4.20" id="c2_${p}" onchange="analizar(${p})"></td>
             <td id="det-${p}" style="font-weight:bold;color:#fbbf24"></td>
-            <td id="diff-${p}" style="font-weight:bold;color:#f87171"></td> <!-- Celda Difícil -->
+            <td id="diff-${p}" style="font-weight:bold;color:#f87171"></td>
         </tr>`;
         analizar(p);
     });
 }
+
+// Nueva función para que el array 'equipos' se actualice al escribir
+function actualizarNombre(p) {
+    const nuevoNombre = document.getElementById(`nom_${p}`).value;
+    equipos[p - 1] = nuevoNombre;
+    // Si hay una tarjeta visible, la refrescamos para ver el nombre nuevo
+    escrutar(); 
+}
+
 
 function analizar(p) {
     const v1 = parseFloat(document.getElementById(`c1_${p}`).value) || 0;
@@ -227,14 +242,24 @@ function cambiarPagina(n) {
 }
 
 function guardarArchivo() {
-    const config = { cuotas: {}, filtros: { minB: document.getElementById('minB').value, maxB: document.getElementById('maxB').value, minD: document.getElementById('minD').value, maxD: document.getElementById('maxD').value, min1: document.getElementById('min1').value, max1: document.getElementById('max1').value }, real: document.getElementById('resultadoReal').value, apuestas: apuestasFinales };
+     const config = {
+        nombres: equipos, // Guardamos los nombres que has escrito
+        cuotas: {},
+        filtros: {
+            minB: document.getElementById('minB').value,
+            maxB: document.getElementById('maxB').value,
+            // ... resto de filtros
+        },
+        real: document.getElementById('resultadoReal').value,
+        apuestas: apuestasFinales
+    };
     partidosElige.forEach(p => { config.cuotas[p] = [document.getElementById(`c1_${p}`).value, document.getElementById(`cX_${p}`).value, document.getElementById(`c2_${p}`).value]; });
     const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `quiniela_config.json`; a.click();
 }
 
 function abrirArchivo(event) {
-    // CORRECCIÓN: Accedemos al primer archivo de la lista
+    // Accedemos al primer archivo de la lista
     const archivo = event.target.files[0];
     
     // Si no hay archivo (ej: se cancela el diálogo), no hacemos nada
@@ -245,7 +270,16 @@ function abrirArchivo(event) {
         try {
             const d = JSON.parse(e.target.result);
             
-            // Cargar Filtros
+            // 1. Cargar Nombres de Equipos (si existen en el JSON)
+            if (d.nombres) {
+                d.nombres.forEach((nom, i) => {
+                    equipos[i] = nom; // Actualiza el array global
+                    const inputNom = document.getElementById(`nom_${i + 1}`);
+                    if (inputNom) inputNom.value = nom; // Actualiza el input visual
+                });
+            }
+
+            // 2. Cargar Filtros
             if (d.filtros) { 
                 document.getElementById('minB').value = d.filtros.minB; 
                 document.getElementById('maxB').value = d.filtros.maxB; 
@@ -255,31 +289,38 @@ function abrirArchivo(event) {
                 document.getElementById('max1').value = d.filtros.max1; 
             }
             
-            // Cargar Cuotas
+            // 3. Cargar Cuotas
             if (d.cuotas) { 
                 Object.keys(d.cuotas).forEach(p => { 
+                    const inputs = d.cuotas[p];
                     if(document.getElementById(`c1_${p}`)) {
-                        document.getElementById(`c1_${p}`).value = d.cuotas[p][0]; 
-                        document.getElementById(`cX_${p}`).value = d.cuotas[p][1]; 
-                        document.getElementById(`c2_${p}`).value = d.cuotas[p][2]; 
+                        document.getElementById(`c1_${p}`).value = inputs[0]; 
+                        document.getElementById(`cX_${p}`).value = inputs[1]; 
+                        document.getElementById(`c2_${p}`).value = inputs[2]; 
                         analizar(p); 
                     }
                 }); 
             }
             
+            // 4. Cargar Resultados y Apuestas
             document.getElementById('resultadoReal').value = d.real || ""; 
             apuestasFinales = d.apuestas || []; 
             indiceActual = 0;
+            
+            // Refrescar premios y la tarjeta visual
             escrutar();
             
+            alert("¡Configuración y equipos cargados correctamente!");
+            
         } catch (err) {
+            console.error(err);
             alert("Error: El archivo no es un JSON válido o está corrupto.");
         }
     };
     
-    // Ahora el parámetro 1 sí es un objeto tipo Blob/File
     reader.readAsText(archivo);
 }
+
 
 function descargarArchivo() {
     const txt = apuestasFinales.map(ap => { let l = Array(14).fill("1"); partidosElige.forEach(p => l[p-1] = ap[p]); return l.join('') + "MM"; }).join('\n');
