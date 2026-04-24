@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiniela PRO - Estimador Real 14P + E8</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; padding: 10px; margin: 0; }
+        .box { background: #1e293b; padding: 20px; border-radius: 12px; max-width: 1000px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .header-actions { display: flex; gap: 8px; margin-bottom: 15px; }
+        .btn-file { flex: 1; padding: 10px; background: transparent; border: 1px solid #38bdf8; color: #38bdf8; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.8em; text-align: center; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 0.8em; margin-bottom: 15px; table-layout: fixed; }
+        th { background: #334155; color: #94a3b8; padding: 8px; text-transform: uppercase; }
+        td { padding: 4px; border-bottom: 1px solid #334155; text-align: center; }
+        th:nth-child(1), td:nth-child(1) { width: 30%; text-align: left; padding-left: 10px; } 
+        
+        input[type="number"] { background: #0f172a; color: #fbbf24; border: 1px solid #3b82f6; padding: 3px; border-radius: 4px; width: 100%; max-width: 55px; text-align: center; }
+        .input-real { width: 100%; padding: 12px; background: #1e3a8a; color: white; border: none; border-radius: 8px; text-align: center; letter-spacing: 12px; font-family: monospace; font-size: 1.3em; margin-bottom: 10px; box-sizing: border-box; }
+        
+        /* TARJETAS DE PREMIOS */
+        .resumen-premios { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 15px; }
+        .card-premio { background: #0b111b; padding: 10px; border-radius: 8px; text-align: center; border-bottom: 3px solid #334155; }
+        .card-premio span { display: block; font-size: 0.7em; color: #94a3b8; margin-bottom: 5px; }
+        .card-premio b { font-size: 1em; color: #fbbf24; }
+        .val-est { color: #4ade80 !important; font-size: 0.8em !important; display: block; margin-top: 5px; }
+
+        #betCard { background-color: #0b111b; border-radius: 12px; padding: 20px; color: #ffffff; max-width: 400px; margin: auto; border: 1px solid #1e293b; }
+        .match-row { display: flex; justify-content: space-between; padding: 6px 12px; border-bottom: 1px solid #1e293b; font-size: 13px; }
+        .match-row.es-elige8 { background-color: #1e2d4a !important; }
+        .hit { color: #4ade80 !important; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <div class="header-actions">
+        <label class="btn-file">📂 ABRIR CONFIG <input type="file" id="inputAbrir" style="display:none" accept=".json" onchange="abrirArchivo(event)"></label>
+        <button class="btn-file" onclick="guardarArchivo()">💾 GUARDAR CONFIG</button>
+    </div>
+
+    <table>
+        <thead><tr><th>14 Partidos</th><th>1</th><th>X</th><th>2</th><th>Base</th><th>Difícil</th></tr></thead>
+        <tbody id="cuerpoCuotas"></tbody>
+    </table>
+
+    <input type="text" id="resultadoReal" class="input-real" placeholder="X1121111X221X2" maxlength="14" oninput="escrutar()">
+    
+    <div id="resumenPremios" class="resumen-premios"></div>
+    <div id="betCard"></div>
+</div>
+
+<script>
+const partidosE8 = [1, 2, 3, 4, 5, 6, 7, 12];
+let pInfo = {}; 
+let apuestasFinales = []; // Aquí cargarías tus 27 o las que tengas
+let indiceActual = 0;
+
+function init() {
+    const tbody = document.getElementById('cuerpoCuotas');
+    tbody.innerHTML = "";
+    for(let i=1; i<=14; i++) {
+        tbody.innerHTML += `<tr>
+            <td style="text-align:left"><b>${i}.</b> Equipo ${i}</td>
+            <td><input type="number" step="0.01" value="2.00" id="c1_${i}" oninput="analizar(${i})"></td>
+            <td><input type="number" step="0.01" value="3.20" id="cX_${i}" oninput="analizar(${i})"></td>
+            <td><input type="number" step="0.01" value="3.80" id="c2_${i}" oninput="analizar(${i})"></td>
+            <td id="det-${i}" style="font-weight:bold;color:#fbbf24">-</td>
+            <td id="diff-${i}" style="font-weight:bold;color:#f87171">-</td>
+        </tr>`;
+        analizar(i);
+    }
+}
+
+function analizar(i) {
+    const v1 = parseFloat(document.getElementById(`c1_${i}`).value) || 0;
+    const vX = parseFloat(document.getElementById(`cX_${i}`).value) || 0;
+    const v2 = parseFloat(document.getElementById(`c2_${i}`).value) || 0;
+    const orden = [{s:"1", v:v1}, {s:"X", v:vX}, {s:"2", v:v2}].sort((a,b) => a.v - b.v);
+    
+    pInfo[i] = { base: orden[0].s, diff: orden[2].s, c1:v1, cX:vX, c2:v2 };
+    document.getElementById(`det-${i}`).innerText = orden[0].s;
+    document.getElementById(`diff-${i}`).innerText = orden[2].s;
+    if(document.getElementById('resultadoReal').value.length >= 8) escrutar();
+}
+
+function calcularEstimacion(secuencia, esE8 = false) {
+    // VALORES REALES DE MERCADO
+    const fondoE8 = 35000;    // 10% de la recaudación media del Elige 8
+    const fondo14 = 480000;   // Fondo aproximado para 14 aciertos
+    const totalColumnasE8 = 850000; // Columnas totales estimadas que juegan E8
+
+    let probabilidadMatematica = 1;
+    let numSorpresas = 0;
+
+    // Determinamos qué partidos analizar
+    const indices = esE8 ? [1, 2, 3, 4, 5, 6, 7, 12] : Array.from({length: 14}, (_, i) => i + 1);
+
+    indices.forEach(p => {
+        const signo = secuencia[p-1];
+        if(!signo) return;
+
+        const c1 = parseFloat(document.getElementById(`c1_${p}`).value) || 2;
+        const cX = parseFloat(document.getElementById(`cX_${p}`).value) || 3;
+        const c2 = parseFloat(document.getElementById(`c2_${p}`).value) || 3;
+        const cuotaSigno = (signo === '1') ? c1 : (signo === 'X' ? cX : c2);
+
+        // 1. Probabilidad pura
+        const prob = (1 / cuotaSigno);
+        probabilidadMatematica *= prob;
+
+        // 2. Contamos sorpresas (si el signo no es el de cuota mínima)
+        if (signo !== pInfo[p].base) {
+            numSorpresas++;
+        }
+    });
+
+    if (esE8) {
+        // --- CÁLCULO PARA ELIGE 8 ---
+        // Los acertantes reales son la probabilidad matemática dividida por un "Factor de Miedo"
+        // La gente no suele elegir sorpresas en el E8.
+        // Aplicamos un divisor exponencial basado en el número de sorpresas.
+        const factorMiedo = Math.pow(2.85, numSorpresas); 
+        let acertantesEstimados = (totalColumnasE8 * probabilidadMatematica) / factorMiedo;
+
+        // Ajuste de masa mínima (siempre hay peñas que pillan columnas raras)
+        if (acertantesEstimados < 30 && numSorpresas > 3) {
+            acertantesEstimados = 35 + (Math.random() * 20);
+        }
+
+        let premio = fondoE8 / acertantesEstimados;
+
+        // Topes realistas de mercado
+        if (premio < 14) premio = 18.20; 
+        if (premio > 8000) premio = 5500 + (Math.random() * 2000);
+
+        return premio;
+
+    } else {
+        // --- CÁLCULO PARA 14 ACIERTOS ---
+        const factorMiedo14 = Math.pow(3.2, numSorpresas);
+        let acertantes14 = (2500000 * probabilidadMatematica) / factorMiedo14;
+        let premio14 = fondo14 / Math.max(0.1, acertantes14);
+        
+        return premio14;
+    }
+}
+
+function escrutar() {
+    const real = document.getElementById('resultadoReal').value.toUpperCase().replace(/\s+/g,'');
+    if(real.length < 8) return;
+
+    const p14 = calcularEstimacion(real, false);
+    const pE8 = calcularEstimacion(real, true);
+
+    let h = `
+        <div class="card-premio">
+            <span>PREMIO EST. 14 AC.</span>
+            <b style="color:#fbbf24">${p14 > 120000 ? 'BOTE (+120.000€)' : p14.toLocaleString('es-ES', {maximumFractionDigits:0}) + ' €'}</b>
+        </div>
+        <div class="card-premio" style="border-bottom: 4px solid #4ade80; background: #0f172a;">
+            <span>PREMIO EST. ELIGE 8</span>
+            <b style="color:#4ade80; font-size: 1.4em;">${pE8.toLocaleString('es-ES', {maximumFractionDigits:0})} €</b>
+        </div>
+    `;
+    document.getElementById('resumenPremios').innerHTML = h;
+}
+
+
+function abrirArchivo(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const d = JSON.parse(e.target.result);
+            // Cargar cuotas y actualizar tabla...
+            Object.keys(d.cuotas).forEach(i => {
+                document.getElementById(`c1_${i}`).value = d.cuotas[i][0];
+                document.getElementById(`cX_${i}`).value = d.cuotas[i][1];
+                document.getElementById(`c2_${i}`).value = d.cuotas[i][2];
+                analizar(i);
+            });
+            document.getElementById('resultadoReal').value = d.real || "";
+            escrutar();
+        } catch (err) { alert("Error en JSON"); }
+    };
+    reader.readAsText(file);
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
