@@ -253,7 +253,7 @@ input {
     <button class="btn-main btn-quin" onclick="generarApp(false)">🏆 Quiniela</button>
     <button class="btn-azul" onclick="generarApp(true)" style="background: #10b981; color: white">🎯ELIGE 8
 </button>
-<button onclick="descargarColumnasE8()" style="background: #10b981; color: white; padding: 10px; border-radius: 5px; cursor: pointer; border: none; margin-left: 10px;">
+<button onclick="descargarColumnasFinales()" style="background: #10b981; color: white; padding: 10px; border-radius: 5px; cursor: pointer; border: none; margin-left: 10px;">
     DESCARGAR(E8)
 </button>
 
@@ -432,6 +432,23 @@ input {
                 </div>
             </div>
             <div id="cardBox"></div>
+            <!-- Selector de Pleno al 15 -->
+<div style="margin-top: 10px; background: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid #334155; display: flex; align-items: center; justify-content: center; gap: 15px;">
+    <span style="color: #38bdf8; font-weight: bold; font-size: 0.9em;">PLENO AL 15:</span>
+    <div style="display: flex; align-items: center; gap: 5px;">
+        <label style="font-size: 0.8em; color: #94a3b8;">Local</label>
+        <select id="p15L" class="in-equipo" style="width: 50px; background: #0f172a; color: #38bdf8; border: 1px solid #38bdf8;">
+            <option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="M">M</option>
+        </select>
+    </div>
+    <div style="display: flex; align-items: center; gap: 5px;">
+        <label style="font-size: 0.8em; color: #94a3b8;">Visitante</label>
+        <select id="p15V" class="in-equipo" style="width: 50px; background: #0f172a; color: #38bdf8; border: 1px solid #38bdf8;">
+            <option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="M">M</option>
+        </select>
+    </div>
+</div>
+
         </div>
 
        <!-- Nueva columna de premios -->
@@ -1175,65 +1192,42 @@ async function cargarDatos() {
         poblarTabla(partidosDeRespaldo);
     }
 }
-function descargarColumnasE8() {
-    // 1. Capturar filtros (Bases: 4,5,6 | Difíciles: 0,1,2)
-    const fB = Array.from(document.querySelectorAll('#btns-e8b .btn-f.active')).map(b => parseInt(b.innerText));
-    const fD = Array.from(document.querySelectorAll('#btns-e8d .btn-f.active')).map(b => parseInt(b.innerText));
+function descargarColumnasFinales() {
+    if (!validas || validas.length === 0) {
+        alert("No hay columnas generadas. Pulsa Quiniela o Elige 8 primero.");
+        return;
+    }
 
-    const idsE8 = [4, 8, 9, 10, 11, 12, 13, 14];
-    const infoP = {};
-    const matriz = [];
+    // 1. Capturar el Pleno al 15 actual
+    const gL = document.getElementById('p15L').value;
+    const gV = document.getElementById('p15V').value;
+    const plenoAl15 = gL + gV;
 
-    // 2. Leer datos de la tabla
-    idsE8.forEach(id => {
-        const pV = document.getElementById(`pro${id}`)?.value.toUpperCase() || "";
-        const sigs = pV.match(/[1X2]/g);
-        if (!sigs) return;
+    let contenidoTXT = "";
 
-        const c1 = parseFloat(document.getElementById(`c1_${id}`)?.value) || 0;
-        const cX = parseFloat(document.getElementById(`cX_${id}`)?.value) || 0;
-        const c2 = parseFloat(document.getElementById(`c2_${id}`)?.value) || 0;
-        const cuotas = [c1, cX, c2].filter(v => v > 0);
-
-        infoP[id] = { min: Math.min(...cuotas), max: Math.max(...cuotas), c1, cX, c2 };
-        matriz.push({ id, s: sigs });
+    // 2. Procesar cada apuesta (fusionada o normal)
+    validas.forEach((apuesta) => {
+        // Convertimos el array de objetos en una cadena de 14 signos
+        let linea14 = apuesta.map(p => p.s).join("");
+        
+        // Añadimos el pleno al 15 (Total 16 caracteres por línea)
+        contenidoTXT += linea14 + plenoAl15 + "\r\n";
     });
 
-    if (matriz.length < 8) return alert("Error: Faltan datos en los 8 partidos del Elige 8");
+    // 3. Crear y disparar la descarga
+    const blob = new Blob([contenidoTXT], { type: 'text/plain' });
+    const enlace = document.createElement('a');
+    enlace.href = URL.createObjectURL(blob);
+    enlace.download = `quiniela_jornada_${document.getElementById('selector-jornada').value}.txt`;
+    
+    document.body.appendChild(enlace);
+    enlace.click();
+    document.body.removeChild(enlace);
+    URL.revokeObjectURL(enlace.href);
 
-    // 3. Generar combinaciones (243)
-    const gen = (a) => a.reduce((x, y) => x.flatMap(d => y.s.map(s => [...d, { id: y.id, s }])), [[]]);
-    const todas = gen(matriz);
-
-    // 4. Filtrar
-    const filtradas = todas.filter(fila => {
-        let nB = 0, nD = 0;
-        fila.forEach(p => {
-            const inf = infoP[p.id];
-            const cJ = (p.s === '1') ? inf.c1 : (p.s === 'X' ? inf.cX : inf.c2);
-            if (cJ === inf.min) nB++;
-            else if (cJ === inf.max) nD++;
-        });
-        return (fB.length === 0 || fB.includes(nB)) && (fD.length === 0 || fD.includes(nD));
-    });
-
-    // 5. Crear el archivo TXT
-    let contenido = `APUESTAS ELIGE 8 GENERADAS\n`;
-    contenido += `Total encontradas: ${filtradas.length}\n`;
-    contenido += `Filtros: Bases(${fB}) - Difíciles(${fD})\n`;
-    contenido += `------------------------------------\n`;
-
-    filtradas.forEach((fila, i) => {
-        const linea = fila.map(p => p.s).join(" | ");
-        contenido += `Apuesta ${i + 1}: ${linea}\n`;
-    });
-
-    const blob = new Blob([contenido], { type: 'text/plain' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `apuestas_e8_${filtradas.length}.txt`;
-    link.click();
+    console.log("Archivo generado para administración: " + validas.length + " apuestas.");
 }
+
 
 function poblarTabla(partidos) {
     const tbody = document.getElementById('cuerpoTabla');
