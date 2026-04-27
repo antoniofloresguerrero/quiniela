@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
 
-    <title>Quiniela y Elige8</title>
+    <title>Quiniela Pro 2025-2026</title>
 <style>
 /* Contenedor horizontal ajustado */
 .herramientas-unificadas {
@@ -335,32 +335,14 @@ input {
 </div>
 
     <!-- Escrutinio -->
-    <div class="filtro-card" id="caja-escrutinio-dual" style="min-width: 300px;">
-    <h3 style="color:#38bdf8; text-align: center; border-bottom: 1px solid #334155; padding-bottom: 8px;">Escrutinio Dual</h3>
-    
-    <div style="display: flex; gap: 20px;">
-        <!-- Columna Quiniela -->
-        <div style="flex: 1; border-right: 1px solid #334155; padding-right: 10px;">
-            <h4 style="color: #fbbf24; font-size: 0.8em; text-align: center; margin-bottom: 10px;">QUINIELA</h4>
-            <div class="fila-e">14: <b id="esc-14" style="color: #fbbf24;">0</b></div>
-            <div class="fila-e">13: <b id="esc-13">0</b></div>
-            <div class="fila-e">12: <b id="esc-12">0</b></div>
-            <div class="fila-e">11: <b id="esc-11">0</b></div>
-            <div class="fila-e">10: <b id="esc-10">0</b></div>
-        </div>
-
-        <!-- Columna Elige 8 -->
-        <div style="flex: 1; padding-left: 10px;">
-            <h4 style="color: #38bdf8; font-size: 0.8em; text-align: center; margin-bottom: 10px;">ELIGE 8</h4>
-            <div class="fila-e">8 ac: <b id="esc-e8-8" style="color: #38bdf8;">0</b></div>
-            <div class="fila-e">7 ac: <b id="esc-e8-7">0</b></div>
-            <div class="fila-e">6 ac: <b id="esc-e8-6">0</b></div>
-            <div class="fila-e">5 ac: <b id="esc-e8-5">0</b></div>
-            <div class="fila-e">4 ac: <b id="esc-e8-4">0</b></div>
-        </div>
+    <div class="filtro-card">
+        <h3>Escrutinio</h3>
+        <div class="fila-e">14 aciertos: <b id="esc-14">0</b></div>
+        <div class="fila-e">13 aciertos: <b id="esc-13">0</b></div>
+        <div class="fila-e">12 aciertos: <b id="esc-12">0</b></div>
+        <div class="fila-e">11 aciertos: <b id="esc-11">0</b></div>
+        <div class="fila-e">10 aciertos: <b id="esc-10">0</b></div>
     </div>
-</div>
-
 
     <!-- Garantías -->
     <div class="filtro-card">
@@ -399,28 +381,7 @@ input {
                     <button class="btn-nav" onclick="irA(validas.length-1)">>>|</button>
                 </div>
             </div>
-            
             <div id="cardBox"></div>
-           <div style="background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #38bdf8; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;">
-    <span style="color: #38bdf8; font-weight: bold; font-size: 0.9em;">PLENO AL 15:</span>
-    
-    <!-- Input para el equipo LOCAL (solo texto) -->
-    <input type="text" placeholder="Local..." style="width: 100px; background: transparent; border: none; border-bottom: 1px solid #334155; color: white; font-size: 0.8em; text-align: right;">
-    
-    <!-- Marcador LOCAL (Influye en el TXT) -->
-    <input type="text" id="p15L" value="M" maxlength="1" style="width: 30px; text-align: center; background: #0f172a; color: #4ade80; border: 1px solid #38bdf8; border-radius: 4px; font-weight: bold;">
-    
-    <span style="color: white;">-</span>
-    
-    <!-- Marcador VISITANTE (Influye en el TXT) -->
-    <input type="text" id="p15V" value="1" maxlength="1" style="width: 30px; text-align: center; background: #0f172a; color: #4ade80; border: 1px solid #38bdf8; border-radius: 4px; font-weight: bold;">
-    
-    <!-- Input para el equipo VISITANTE (solo texto) -->
-    <input type="text" placeholder="Visitante..." style="width: 100px; background: transparent; border: none; border-bottom: 1px solid #334155; color: white; font-size: 0.8em; text-align: left;">
-    
-    <small style="color: #94a3b8; font-size: 0.7em; width: 100%; text-align: center; margin-top: 5px;">(Marcadores válidos: 0, 1, 2 o M)</small>
-</div>
-
         </div>
 
        <!-- Nueva columna de premios -->
@@ -441,12 +402,6 @@ input {
 
 
 <script>
-
-let apuestasQuiniela = []; // Se llena al pulsar "Quiniela"
-let apuestasElige8 = [];  // Se llena al pulsar "Elige 8"
-       // El resultado final que se ve en la Card y el TXT
-
-
     let validas = [], idx = 0;
 
     window.onload = () => { generarBotonesFiltro(); cargarDatos(); };
@@ -629,96 +584,80 @@ async function guardarFiltros() {
         return;
     }
 
-    // 2. Captura de resultados reales y partidos marcados como Elige 8
+    // 2. Captura de resultados reales desde la tabla (ID: R1, R2...)
     const resReales = {};
-    const partidosMarcadosE8 = [];
     let hayResultados = false;
-    
     for (let i = 1; i <= 14; i++) {
-        // Guardamos el resultado real si existe
-        const elR = document.getElementById(`R${i}`);
-        const valR = elR ? elR.value.trim().toUpperCase() : "";
-        if (valR !== "" && ["1", "X", "2"].includes(valR)) {
-            resReales[i] = valR;
+        const el = document.getElementById(`R${i}`);
+        const val = el ? el.value.trim().toUpperCase() : "";
+        if (val !== "" && ["1", "X", "2"].includes(val)) {
+            resReales[i] = val;
             hayResultados = true;
-        }
-        // Guardamos si el partido es parte del Elige 8
-        if (document.getElementById(`e8_${i}`)?.checked) {
-            partidosMarcadosE8.push(i);
         }
     }
 
-    // Si no hay resultados, reseteamos contadores (Quiniela y E8) y salimos
+    // Si no hay resultados, ponemos contadores a 0 y salimos
     if (!hayResultados) {
-        for (let i = 10; i <= 14; i++) { if (document.getElementById(`esc-${i}`)) document.getElementById(`esc-${i}`).innerText = "0"; }
-        for (let i = 4; i <= 8; i++) { if (document.getElementById(`esc-e8-${i}`)) document.getElementById(`esc-e8-${i}`).innerText = "0"; }
+        for (let i = 10; i <= 14; i++) {
+            const el = document.getElementById(`esc-${i}`);
+            if (el) el.innerText = "0";
+        }
         if (contenedorLista) contenedorLista.innerHTML = "<div style='color:gray;text-align:center;padding:10px;'>Introduce resultados reales</div>";
         return;
     }
 
-    // 3. Conteo de aciertos (Dual: Quiniela y Elige 8)
-    let cGlobalQ = { 14: 0, 13: 0, 12: 0, 11: 0, 10: 0 };
-    let cGlobalE8 = { 8: 0, 7: 0, 6: 0, 5: 0, 4: 0 };
+    // 3. Conteo de aciertos
+    let conteoGlobal = { 14: 0, 13: 0, 12: 0, 11: 0, 10: 0 };
     let detalleHTML = "";
 
     validas.forEach((apuesta, index) => {
-        let acQ = 0;
-        let acE8 = 0;
+        let aciertos = 0;
         
+        // IMPORTANTE: En tu generarApp, cada apuesta es [{id: X, s: 'Y'}, ...]
         apuesta.forEach(partido => {
-            if (resReales[partido.id] === partido.s) {
-                acQ++; // Acierto para Quiniela
-                if (partidosMarcadosE8.includes(partido.id)) {
-                    acE8++; // Acierto para Elige 8
-                }
+            if (resReales[partido.id] && resReales[partido.id] === partido.s) {
+                aciertos++;
             }
         });
 
-        // Registrar premios Quiniela
-        if (acQ >= 10) cGlobalQ[acQ]++;
-        // Registrar premios Elige 8
-        if (acE8 >= 4) cGlobalE8[acE8]++;
+        // Solo registramos premios de 10 o más
+        if (aciertos >= 10) {
+            conteoGlobal[aciertos]++;
+            // 1. Definimos los colores (Púm, directo)
+const coloresMap = {
+    14: "#fbbf24", // Dorado
+    13: "#a855f7", // Morado (puedes poner el que quieras)
+    12: "#38bdf8", // Azul
+    11: "#f87171", // Rojo
+    10: "#4ade80"  // Verde
+};
 
-        // Lógica de visualización en la lista (prioriza mostrar el premio mayor)
-        if (acQ >= 10 || acE8 >= 8) {
-            const coloresMap = { 14: "#fbbf24", 13: "#a855f7", 12: "#38bdf8", 11: "#f87171", 10: "#4ade80" };
-            const colorQ = coloresMap[acQ] || "#94a3b8";
-            
-            detalleHTML += `
-                <div onclick="irA(${index})" style="display:flex; flex-direction:column; padding:8px 10px; border-bottom:1px solid #334155; cursor:pointer; gap:2px;">
-                    <div style="display:flex; justify-content:space-between;">
-                        <span style="color: #f8fafc; font-size:0.9em;">Columna ${index + 1}</span>
-                        <b style="color: ${colorQ}; font-weight: bold;">${acQ} AC.</b>
-                    </div>
-                    ${acE8 >= 5 ? `<div style="font-size:0.7em; color:#38bdf8; text-align:right;">Elige 8: ${acE8} AC.</div>` : ''}
-                </div>`;
+// 2. Dentro del bucle, asignamos el color según los aciertos
+const colorFinal = coloresMap[aciertos] || "#ffffff";
+
+detalleHTML += `
+    <div onclick="irA(${index})" style="display:flex; justify-content:space-between; padding:8px 10px; border-bottom:1px solid #334155; cursor:pointer;">
+        <span style="color: #f8fafc;">Boleto #${index + 1}</span>
+        <b style="color: ${colorFinal} !important; font-weight: bold;">${aciertos} AC.</b>
+    </div>`;
+
         }
     });
 
-    // 4. Actualizar marcadores Quiniela (esc-14...)
+    // 4. Actualizar los marcadores de la interfaz (esc-14, esc-13...)
     for (let i = 10; i <= 14; i++) {
         const el = document.getElementById(`esc-${i}`);
         if (el) {
-            el.innerText = cGlobalQ[i];
-            el.style.color = cGlobalQ[i] > 0 ? "#4ade80" : "#94a3b8";
+            el.innerText = conteoGlobal[i];
+            el.style.color = conteoGlobal[i] > 0 ? "#4ade80" : "#94a3b8";
         }
     }
 
-    // 5. Actualizar marcadores Elige 8 (esc-e8-8...)
-    for (let i = 4; i <= 8; i++) {
-        const el = document.getElementById(`esc-e8-${i}`);
-        if (el) {
-            el.innerText = cGlobalE8[i];
-            el.style.color = cGlobalE8[i] > 0 ? "#38bdf8" : "#94a3b8";
-        }
-    }
-
-    // 6. Inyectar en la columna lateral
+    // 5. Inyectar en la columna lateral
     if (contenedorLista) {
         contenedorLista.innerHTML = detalleHTML || "<div style='color:gray;text-align:center;padding:10px;'>Sin premios</div>";
     }
 }
-
 
 
 
@@ -826,10 +765,12 @@ async function generarApp(esModoE8) {
     // 1. CAPTURA DE DATOS
     for (let i = 1; i <= 14; i++) {
         const checkE8 = document.getElementById(`e8_${i}`);
-        // IMPORTANTE: Capturamos los 14 siempre para tener la base de datos completa
+        if (esModoE8 && !(checkE8 && checkE8.checked)) continue;
+
         const inputPro = document.getElementById(`pro${i}`);
-        const sigs = inputPro ? inputPro.value.toUpperCase().match(/[1X2]/g) : ["1"]; // Si no hay pronóstico, asumimos "1"
-        
+        const sigs = inputPro ? inputPro.value.toUpperCase().match(/[1X2]/g) : null;
+        if (!sigs) continue;
+
         const c1 = parseFloat(document.getElementById(`c1_${i}`)?.value.replace(',', '.')) || 0;
         const cX = parseFloat(document.getElementById(`cX_${i}`)?.value.replace(',', '.')) || 0;
         const c2 = parseFloat(document.getElementById(`c2_${i}`)?.value.replace(',', '.')) || 0;
@@ -843,6 +784,8 @@ async function generarApp(esModoE8) {
         matriz.push({ id: i, s: sigs, c1, cX, c2, minV, maxV });
     }
 
+    if (matriz.length === 0) return alert("Introduce pronósticos.");
+
     // 2. GENERACIÓN DEL UNIVERSO BASE
     let univ = [[]];
     for (let p of matriz) {
@@ -851,7 +794,7 @@ async function generarApp(esModoE8) {
         univ = n;
     }
 
-    // 3. CAPTURA DE FILTROS Y FILTRADO
+    // 3. CAPTURA DE FILTROS POR TRAMOS
     const getS = id => new Set(Array.from(document.getElementById(id)?.querySelectorAll('.active') || []).map(b => parseInt(b.innerText)));
     const f = esModoE8 ? { b:getS('btns-e8b'), d:getS('btns-e8d'), u:getS('btns-e8u') } : 
                          { u18:getS('btns-u-1'), u914:getS('btns-u-2'), b18:getS('btns-b-1'), b914:getS('btns-b-2'), d18:getS('btns-d-1'), d914:getS('btns-d-2') };
@@ -862,10 +805,8 @@ async function generarApp(esModoE8) {
             const m = matriz[idx];
             const cJ = (s==='1')? m.c1 : (s==='X'? m.cX : m.c2);
             const esU=s==='1', esB=Math.abs(cJ-m.minV)<0.01, esD=Math.abs(cJ-m.maxV)<0.01 && m.maxV>m.minV;
-            if(esModoE8) { 
-                const checkE8 = document.getElementById(`e8_${idx+1}`);
-                if(checkE8 && checkE8.checked) { if(esU)nU++; if(esB)nB++; if(esD)nD++; }
-            } else {
+            if(esModoE8) { if(esU)nU++; if(esB)nB++; if(esD)nD++; }
+            else {
                 if(idx<8){ if(esU)nU1++; if(esB)nB1++; if(esD)nD1++; }
                 else { if(esU)nU2++; if(esB)nB2++; if(esD)nD2++; }
             }
@@ -874,10 +815,9 @@ async function generarApp(esModoE8) {
                           ((f.u18.size===0||f.u18.has(nU1))&&(f.u914.size===0||f.u914.has(nU2))&&(f.b18.size===0||f.b18.has(nB1))&&(f.b914.size===0||f.b914.has(nB2))&&(f.d18.size===0||f.d18.has(nD1))&&(f.d914.size===0||f.d914.has(nD2)));
     });
 
-    // 4. MOTOR DE REDUCCIÓN
+    // 4. MOTOR DE REDUCCIÓN (SLIDER SOBRE COBERTURA)
     const objAciertos = parseInt(document.getElementById('selReduccion')?.value || 14);
     const porcentajeSlider = parseFloat(document.getElementById('rangePct')?.value || 100);
-    let finalSource = [];
 
     if (objAciertos < 14) {
         let reduccionFinal = [];
@@ -889,6 +829,7 @@ async function generarApp(esModoE8) {
         while (totalCubiertas < objetivoDeCobertura && pool.length > 0) {
             let mejorColIdx = -1, mejorAporte = -1;
             let numPruebas = Math.min(pool.length, 200); 
+
             for (let t = 0; t < numPruebas; t++) {
                 let rIdx = Math.floor(Math.random() * pool.length);
                 let candidata = pool[rIdx];
@@ -903,6 +844,7 @@ async function generarApp(esModoE8) {
                 if (aporte > mejorAporte) { mejorAporte = aporte; mejorColIdx = rIdx; }
                 if (mejorAporte > (universoFiltrado.length / 50)) break; 
             }
+
             if (mejorColIdx === -1 || mejorAporte === 0) break;
             let elegida = pool.splice(mejorColIdx, 1)[0];
             reduccionFinal.push(elegida);
@@ -914,57 +856,34 @@ async function generarApp(esModoE8) {
                 }
             }
         }
-        finalSource = reduccionFinal;
+        validas = reduccionFinal.map(col => col.map((s, idx) => ({ id: matriz[idx].id, s })));
     } else {
-        finalSource = universoFiltrado;
+        validas = universoFiltrado.map(col => col.map((s, idx) => ({ id: matriz[idx].id, s })));
     }
-
-    // --- 5. LÓGICA DE COMBINACIÓN HÍBRIDA ---
-    // Convertimos la fuente actual a formato de objetos
-    const resultadoActual = finalSource.map(col => col.map((s, i) => ({ id: i + 1, s })));
-
-    if (esModoE8) {
-        apuestasElige8 = resultadoActual;
-        console.log("Guardadas apuestas Elige 8: " + apuestasElige8.length);
-    } else {
-        apuestasQuiniela = resultadoActual;
-        console.log("Guardadas apuestas Quiniela: " + apuestasQuiniela.length);
-    }
-
-    if (apuestasQuiniela.length > 0 && apuestasElige8.length > 0) {
-        const totalAcuadrar = Math.min(apuestasQuiniela.length, apuestasElige8.length);
-        validas = []; 
-
-        for (let i = 0; i < totalAcuadrar; i++) {
-            let filaCombinada = [];
-            for (let p = 1; p <= 14; p++) {
-                const esE8 = document.getElementById(`e8_${p}`)?.checked;
-                // Extraemos el signo correspondiente de cada lista de memoria
-                const signoE8 = apuestasElige8[i].find(x => x.id === p).s;
-                const signoQ = apuestasQuiniela[i].find(x => x.id === p).s;
-                
-                filaCombinada.push({ id: p, s: esE8 ? signoE8 : signoQ });
-            }
-            validas.push(filaCombinada);
-        }
-        alert("¡Combinación Híbrida! " + totalAcuadrar + " columnas unificadas.");
-    } else {
-        validas = resultadoActual;
-    }
-
-    // 6. ACTUALIZAR UI
+ // 5. ACTUALIZAR UI
     const elFiltrado = document.getElementById('stFiltrado');
     if (elFiltrado) elFiltrado.innerText = validas.length;
     
     idx = 0;
     if (validas.length > 0) {
-        pitar(); 
-        if (typeof calcularGarantias === 'function') calcularGarantias();
-        if (typeof ejecutarEscrutinio === 'function') ejecutarEscrutinio();
+        pitar(); // Muestra la primera tarjeta
+        
+        if (typeof calcularGarantias === 'function') {
+            calcularGarantias();
+        }
+        
+        // Ejecutamos el escrutinio aquí dentro para que actúe sobre las nuevas validas
+        if (typeof ejecutarEscrutinio === 'function') {
+            ejecutarEscrutinio();
+        }
     } else {
-        alert("0 columnas encontradas con estos filtros.");
+        // Si no hay columnas, limpiamos el panel de premios
+        const listaPremios = document.getElementById('listaPremiosRealtime');
+        if (listaPremios) listaPremios.innerHTML = "<div style='color:gray'>Sin columnas</div>";
+        alert("0 columnas encontradas.");
     }
 }
+
 
 
 // 2. PITAR: Formato visual exacto de la columna seleccionada
@@ -1217,45 +1136,64 @@ async function cargarDatos() {
     }
 }
 function descargarColumnasE8() {
-    if (!validas || validas.length === 0) {
-        return alert("Primero genera las apuestas para combinar las filas.");
-    }
+    // 1. Capturar filtros (Bases: 4,5,6 | Difíciles: 0,1,2)
+    const fB = Array.from(document.querySelectorAll('#btns-e8b .btn-f.active')).map(b => parseInt(b.innerText));
+    const fD = Array.from(document.querySelectorAll('#btns-e8d .btn-f.active')).map(b => parseInt(b.innerText));
 
-    // CAPTURA DEL PLENO AL 15 DESDE LOS INPUTS
-    // Convertimos a Mayúsculas por si pones 'm' pequeña
-    const golesLocal = document.getElementById('p15L').value.toUpperCase() || "0";
-    const golesVisit = document.getElementById('p15V').value.toUpperCase() || "0";
-    const plenoElegido = golesLocal + golesVisit;
+    const idsE8 = [4, 8, 9, 10, 11, 12, 13, 14];
+    const infoP = {};
+    const matriz = [];
 
-    // Validación rápida
-    const valoresValidos = ["0", "1", "2", "M"];
-    if (!valoresValidos.includes(golesLocal) || !valoresValidos.includes(golesVisit)) {
-        return alert("El Pleno al 15 solo acepta: 0, 1, 2 o M");
-    }
+    // 2. Leer datos de la tabla
+    idsE8.forEach(id => {
+        const pV = document.getElementById(`pro${id}`)?.value.toUpperCase() || "";
+        const sigs = pV.match(/[1X2]/g);
+        if (!sigs) return;
 
-    const contenidoTXT = validas.map(fila => {
-        let linea14 = "";
-        for (let i = 1; i <= 14; i++) {
-            const partido = fila.find(p => p.id === i);
-            linea14 += partido ? partido.s : "1"; 
-        }
-        // Retorna los 14 signos + los 2 del pleno que escribiste
-        return linea14 + plenoElegido;
-    }).join("\r\n");
+        const c1 = parseFloat(document.getElementById(`c1_${id}`)?.value) || 0;
+        const cX = parseFloat(document.getElementById(`cX_${id}`)?.value) || 0;
+        const c2 = parseFloat(document.getElementById(`c2_${id}`)?.value) || 0;
+        const cuotas = [c1, cX, c2].filter(v => v > 0);
 
-    const blob = new Blob([contenidoTXT], { type: 'text/plain' });
+        infoP[id] = { min: Math.min(...cuotas), max: Math.max(...cuotas), c1, cX, c2 };
+        matriz.push({ id, s: sigs });
+    });
+
+    if (matriz.length < 8) return alert("Error: Faltan datos en los 8 partidos del Elige 8");
+
+    // 3. Generar combinaciones (243)
+    const gen = (a) => a.reduce((x, y) => x.flatMap(d => y.s.map(s => [...d, { id: y.id, s }])), [[]]);
+    const todas = gen(matriz);
+
+    // 4. Filtrar
+    const filtradas = todas.filter(fila => {
+        let nB = 0, nD = 0;
+        fila.forEach(p => {
+            const inf = infoP[p.id];
+            const cJ = (p.s === '1') ? inf.c1 : (p.s === 'X' ? inf.cX : inf.c2);
+            if (cJ === inf.min) nB++;
+            else if (cJ === inf.max) nD++;
+        });
+        return (fB.length === 0 || fB.includes(nB)) && (fD.length === 0 || fD.includes(nD));
+    });
+
+    // 5. Crear el archivo TXT
+    let contenido = `APUESTAS ELIGE 8 GENERADAS\n`;
+    contenido += `Total encontradas: ${filtradas.length}\n`;
+    contenido += `Filtros: Bases(${fB}) - Difíciles(${fD})\n`;
+    contenido += `------------------------------------\n`;
+
+    filtradas.forEach((fila, i) => {
+        const linea = fila.map(p => p.s).join(" | ");
+        contenido += `Apuesta ${i + 1}: ${linea}\n`;
+    });
+
+    const blob = new Blob([contenido], { type: 'text/plain' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `quiniela_E8_pleno_${plenoElegido}.txt`;
-    
-    document.body.appendChild(link);
+    link.download = `apuestas_e8_${filtradas.length}.txt`;
     link.click();
-    document.body.removeChild(link);
-    
-    alert(`Descargadas ${validas.length} apuestas con Pleno al 15: ${golesLocal}-${golesVisit}`);
 }
-
-
 
 function poblarTabla(partidos) {
     const tbody = document.getElementById('cuerpoTabla');
@@ -1474,4 +1412,3 @@ if (window.innerWidth < 768) {
 </script>
 </body>
 </html>
-
