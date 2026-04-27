@@ -335,12 +335,12 @@ input {
 </div>
 
     <!-- Escrutinio -->
-   <div class="filtro-card" style="min-width: 320px; padding: 15px;">
+   <div class="filtro-card" style="min-width: 220px; padding: 15px;">
     <h3>Escrutinio Unificado</h3>
     <div style="display: flex; gap: 15px; justify-content: space-between;">
         <!-- Columna Quiniela -->
         <div style="flex: 1;">
-            <div style="color: #94a3b8; font-size: 0.8em; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #334155; text-align: center;">QUINIELA</div>
+            <div style="color: #f87171; font-size: 0.8em; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #334155; text-align: center;">QUINIELA</div>
             <div class="fila-e" style="font-size: 1.1em;">14 ac: <b id="esc-14" style="font-size: 1.4em; color: #fbbf24;">0</b></div>
             <div class="fila-e" style="font-size: 1.1em;">13 ac: <b id="esc-13" style="font-size: 1.3em; color: #a855f7;">0</b></div>
             <div class="fila-e" style="font-size: 1.1em;">12 ac: <b id="esc-12" style="font-size: 1.2em; color: #38bdf8;">0</b></div>
@@ -358,6 +358,39 @@ input {
         </div>
     </div>
 </div>
+<div class="filtro-card" style="min-width: 220px; padding: 15px; border-bottom-color: #fbbf24;">
+    <h3>ESCRUTINIO TOTAL</h3>
+    <div style="display: flex; gap: 15px; justify-content: space-between;">
+        <!-- Columna Importes Quiniela -->
+        <div style="flex: 1;">
+            <div style="color: #94a3b8; font-size: 0.8em; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #334155; text-align: center;">PREMIO</div>
+            <div class="fila-e" style="font-size: 1.1em;">14: <input type="number" id="val-14" value="50000" style="width:65px; background:transparent; border:none; color:#fbbf24; font-weight:bold;">€</div>
+            <div class="fila-e" style="font-size: 1.1em;">13: <input type="number" id="val-13" value="500" style="width:65px; background:transparent; border:none; color:#a855f7; font-weight:bold;" oninput="calcularPremios()">€</div>
+            <div class="fila-e" style="font-size: 1.1em;">12: <input type="number" id="val-12" value="20" style="width:65px; background:transparent; border:none; color:#38bdf8; font-weight:bold;">€</div>
+            <div class="fila-e" style="font-size: 1.1em;">11: <input type="number" id="val-11" value="3" style="width:65px; background:transparent; border:none; color:#f87171; font-weight:bold;">€</div>
+            <div class="fila-e" style="font-size: 1.1em;">10: <input type="number" id="val-10" value="1.5" style="width:65px; background:transparent; border:none; color:#4ade80; font-weight:bold;">€</div>
+        </div>
+        <!-- Columna Totales Ganados -->
+        <div style="flex: 1; border-left: 2px solid #334155; padding-left: 15px;">
+            <div style="color: #f87171; font-size: 0.8em; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #334155; text-align: center;">TOTAL GANADO</div>
+            <div style="text-align: center; margin-top: 10px;">
+                <div style="font-size: 0.7em; color: #94a3b8;">QUINIELA</div>
+                <div id="total-q" style="font-size: 1.4em; color: #f87171; font-weight: bold;">0.00€</div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <div style="font-size: 0.7em; color: #38bdf8; border-top: 1px solid #334155; padding-top: 5px;">E8 (13% del 13)</div>
+                <div id="total-e8" style="font-size: 1.4em; color: #38bdf8; font-weight: bold;">0.00€</div>
+            </div>
+        </div>
+    </div>
+      <!-- SECCIÓN GRAN TOTAL -->
+    <div style="margin-top: 15px; padding-top: 10px; border-top: 2px solid var(--accent); text-align: center; background: rgba(56, 189, 248, 0.1); border-radius: 5px;">
+        <div style="font-size: 0.8em; color: var(--accent); font-weight: bold; text-transform: uppercase;">Total Acumulado (Q + E8)</div>
+        <div id="gran-total" style="font-size: 1.8em; color: #4ade80; font-weight: bold; text-shadow: 0 0 10px var(--accent);">0.00€</div>
+    </div>
+</div>
+
+
 
 
 
@@ -591,6 +624,35 @@ async function guardarFiltros() {
         localStorage.setItem('mis_filtros', JSON.stringify({u: fU, b: fB, d: fD}));
     }
 }
+function calcularPremios() {
+    let totalQuiniela = 0;
+    
+    // 1. Cálculo de Quiniela
+    const categorias = [10, 11, 12, 13, 14];
+    categorias.forEach(cat => {
+        const cantidad = parseInt(document.getElementById(`esc-${cat}`).innerText) || 0;
+        const valor = parseFloat(document.getElementById(`val-${cat}`).value) || 0;
+        totalQuiniela += cantidad * valor;
+    });
+    
+    document.getElementById('total-q').innerText = totalQuiniela.toFixed(2) + "€";
+
+    // 2. Cálculo de Elige 8 (13% del premio de 13)
+    const cantidadE8 = parseInt(document.getElementById(`escE8-8`).innerText) || 0;
+    const valor13 = parseFloat(document.getElementById(`val-13`).value) || 0;
+    const totalE8 = cantidadE8 * (valor13 * 0.13);
+    
+    document.getElementById('total-e8').innerText = totalE8.toFixed(2) + "€";
+
+    // 3. GRAN TOTAL
+    const granTotal = totalQuiniela + totalE8;
+    const elGranTotal = document.getElementById('gran-total');
+    if (elGranTotal) {
+        elGranTotal.innerText = granTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "€";
+    }
+}
+
+
 
 
  function ejecutarEscrutinio() {
@@ -659,6 +721,7 @@ async function guardarFiltros() {
     if (contenedorLista) {
         contenedorLista.innerHTML = detalleHTML || "<div style='color:gray;text-align:center;padding:20px;'>Sin premios destacados</div>";
     }
+    if (typeof calcularPremios === 'function') calcularPremios();
 }
 
 
