@@ -335,14 +335,31 @@ input {
 </div>
 
     <!-- Escrutinio -->
-    <div class="filtro-card">
-        <h3>Escrutinio</h3>
-        <div class="fila-e">14 aciertos: <b id="esc-14">0</b></div>
-        <div class="fila-e">13 aciertos: <b id="esc-13">0</b></div>
-        <div class="fila-e">12 aciertos: <b id="esc-12">0</b></div>
-        <div class="fila-e">11 aciertos: <b id="esc-11">0</b></div>
-        <div class="fila-e">10 aciertos: <b id="esc-10">0</b></div>
+   <div class="filtro-card" style="min-width: 320px; padding: 15px;">
+    <h3>Escrutinio Unificado</h3>
+    <div style="display: flex; gap: 15px; justify-content: space-between;">
+        <!-- Columna Quiniela -->
+        <div style="flex: 1;">
+            <div style="color: #94a3b8; font-size: 0.8em; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #334155; text-align: center;">QUINIELA</div>
+            <div class="fila-e" style="font-size: 1.1em;">14 ac: <b id="esc-14" style="font-size: 1.4em; color: #fbbf24;">0</b></div>
+            <div class="fila-e" style="font-size: 1.1em;">13 ac: <b id="esc-13" style="font-size: 1.3em; color: #a855f7;">0</b></div>
+            <div class="fila-e" style="font-size: 1.1em;">12 ac: <b id="esc-12" style="font-size: 1.2em; color: #38bdf8;">0</b></div>
+            <div class="fila-e" style="font-size: 1.1em;">11 ac: <b id="esc-11" style="font-size: 1.1em; color: #f87171;">0</b></div>
+            <div class="fila-e" style="font-size: 1.1em;">10 ac: <b id="esc-10" style="font-size: 1.1em; color: #4ade80;">0</b></div>
+        </div>
+        <!-- Columna Elige 8 -->
+        <div style="flex: 1; border-left: 2px solid #334155; padding-left: 15px;">
+            <div style="color: #38bdf8; font-size: 0.8em; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #334155; text-align: center;">ELIGE 8</div>
+            <div class="fila-e" style="font-size: 1.1em;">8 ac: <b id="escE8-8" style="font-size: 1.4em; color: #38bdf8;">0</b></div>
+            <div class="fila-e" style="font-size: 1.1em;">7 ac: <b id="escE8-7" style="font-size: 1.3em; color: #fbbf24;">0</b></div>
+            <div class="fila-e" style="font-size: 1.1em;">6 ac: <b id="escE8-6" style="font-size: 1.2em; color: #4ade80;">0</b></div>
+            <div class="fila-e" style="font-size: 1.1em;">5 ac: <b id="escE8-5" style="font-size: 1.1em; color: #94a3b8;">0</b></div>
+            <div class="fila-e" style="font-size: 1.1em;">4 ac: <b id="escE8-4" style="font-size: 1.1em; color: #64748b;">0</b></div>
+        </div>
     </div>
+</div>
+
+
 
     <!-- Garantías -->
     <div class="filtro-card">
@@ -577,89 +594,72 @@ async function guardarFiltros() {
 
 
  function ejecutarEscrutinio() {
-    // 1. Validar que existan apuestas y el contenedor de la lista
     const contenedorLista = document.getElementById('listaItems');
-    if (!validas || validas.length === 0) {
-        if (contenedorLista) contenedorLista.innerHTML = "";
-        return;
-    }
+    if (!validas || validas.length === 0) return;
 
-    // 2. Captura de resultados reales desde la tabla (ID: R1, R2...)
     const resReales = {};
+    const partidosE8 = [];
     let hayResultados = false;
+
+    // Colores configurados
+    const coloresQ = { 14: "#fbbf24", 13: "#a855f7", 12: "#38bdf8", 11: "#f87171", 10: "#4ade80" };
+    const coloresE8 = { 8: "#38bdf8", 7: "#fbbf24", 6: "#4ade80", 5: "#94a3b8", 4: "#64748b" };
+
     for (let i = 1; i <= 14; i++) {
-        const el = document.getElementById(`R${i}`);
-        const val = el ? el.value.trim().toUpperCase() : "";
-        if (val !== "" && ["1", "X", "2"].includes(val)) {
+        const val = document.getElementById(`R${i}`)?.value.trim().toUpperCase();
+        if (val && ["1", "X", "2"].includes(val)) {
             resReales[i] = val;
             hayResultados = true;
         }
+        if (document.getElementById(`e8_${i}`)?.checked) partidosE8.push(i);
     }
 
-    // Si no hay resultados, ponemos contadores a 0 y salimos
-    if (!hayResultados) {
-        for (let i = 10; i <= 14; i++) {
-            const el = document.getElementById(`esc-${i}`);
-            if (el) el.innerText = "0";
-        }
-        if (contenedorLista) contenedorLista.innerHTML = "<div style='color:gray;text-align:center;padding:10px;'>Introduce resultados reales</div>";
-        return;
-    }
+    if (!hayResultados) return;
 
-    // 3. Conteo de aciertos
-    let conteoGlobal = { 14: 0, 13: 0, 12: 0, 11: 0, 10: 0 };
+    let conteoQ = { 14:0, 13:0, 12:0, 11:0, 10:0 };
+    let conteoE8 = { 8:0, 7:0, 6:0, 5:0, 4:0 };
     let detalleHTML = "";
 
     validas.forEach((apuesta, index) => {
-        let aciertos = 0;
-        
-        // IMPORTANTE: En tu generarApp, cada apuesta es [{id: X, s: 'Y'}, ...]
-        apuesta.forEach(partido => {
-            if (resReales[partido.id] && resReales[partido.id] === partido.s) {
-                aciertos++;
+        let acQ = 0, acE8 = 0;
+        apuesta.forEach(p => {
+            if (resReales[p.id] === p.s) {
+                acQ++;
+                if (partidosE8.includes(p.id)) acE8++;
             }
         });
 
-        // Solo registramos premios de 10 o más
-        if (aciertos >= 10) {
-            conteoGlobal[aciertos]++;
-            // 1. Definimos los colores (Púm, directo)
-const coloresMap = {
-    14: "#fbbf24", // Dorado
-    13: "#a855f7", // Morado (puedes poner el que quieras)
-    12: "#38bdf8", // Azul
-    11: "#f87171", // Rojo
-    10: "#4ade80"  // Verde
-};
+        if (acQ >= 10) conteoQ[acQ]++;
+        if (acE8 >= 4) conteoE8[acE8]++;
 
-// 2. Dentro del bucle, asignamos el color según los aciertos
-const colorFinal = coloresMap[aciertos] || "#ffffff";
-
-detalleHTML += `
-    <div onclick="irA(${index})" style="display:flex; justify-content:space-between; padding:8px 10px; border-bottom:1px solid #334155; cursor:pointer;">
-        <span style="color: #f8fafc;">Boleto #${index + 1}</span>
-        <b style="color: ${colorFinal} !important; font-weight: bold;">${aciertos} AC.</b>
-    </div>`;
-
+        // Solo mostramos en la lista si tiene algo relevante (11+ en Q o 6+ en E8)
+        if (acQ >= 11 || acE8 >= 6) {
+            const colQ = coloresQ[acQ] || "#ffffff";
+            const colE8 = coloresE8[acE8] || "#ffffff";
+            
+            detalleHTML += `
+                <div onclick="irA(${index})" style="display:flex; justify-content:space-between; padding:10px 12px; border-bottom:1px solid #334155; cursor:pointer; background:${index === idx ? '#2d3848' : 'transparent'}; align-items:center;">
+                    <span style="font-size:1.1em; color:#94a3b8;">#${index + 1}</span>
+                    <b style="color:${colQ}; font-size:1.2em; flex:1; text-align:center;">${acQ} Q</b>
+                    <b style="color:${colE8}; font-size:1.2em; flex:1; text-align:right;">${acE8} E8</b>
+                </div>`;
         }
     });
 
-    // 4. Actualizar los marcadores de la interfaz (esc-14, esc-13...)
+    // Actualizar Panel
     for (let i = 10; i <= 14; i++) {
         const el = document.getElementById(`esc-${i}`);
-        if (el) {
-            el.innerText = conteoGlobal[i];
-            el.style.color = conteoGlobal[i] > 0 ? "#4ade80" : "#94a3b8";
-        }
+        if(el) el.innerText = conteoQ[i];
+    }
+    for (let i = 4; i <= 8; i++) {
+        const el = document.getElementById(`escE8-${i}`);
+        if(el) el.innerText = conteoE8[i];
     }
 
-    // 5. Inyectar en la columna lateral
     if (contenedorLista) {
-        contenedorLista.innerHTML = detalleHTML || "<div style='color:gray;text-align:center;padding:10px;'>Sin premios</div>";
+        contenedorLista.innerHTML = detalleHTML || "<div style='color:gray;text-align:center;padding:20px;'>Sin premios destacados</div>";
     }
 }
-
-
 
 
   function cambiarIdx(n) {
