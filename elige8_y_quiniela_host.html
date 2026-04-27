@@ -756,131 +756,108 @@ function irA(n) {
 
 // 1. GENERAR: Lógica corregida para procesar todas las columnas
 async function generarApp(esModoE8) {
-    modoE8Actual = esModoE8;
-    console.log("Iniciando generación: " + (esModoE8 ? "Elige 8" : "Quiniela"));
+    // 1. Intentamos ejecutar la lógica con seguridad
+    try {
+        modoE8Actual = esModoE8;
+        console.log("Iniciando: " + (esModoE8 ? "Generación Elige 8" : "Generación Quiniela"));
 
-    const matriz = [];
-    const bs = [], ds = [];
+        const matriz = [];
+        // Capturamos los datos de la tabla (1 al 14)
+        for (let i = 1; i <= 14; i++) {
+            const inputPro = document.getElementById(`pro${i}`);
+            const sigs = inputPro ? inputPro.value.toUpperCase().match(/[1X2]/g) : ["1"];
+            const sBase = document.getElementById(`an_${i}`)?.innerText.trim() || "1";
+            const sDif = document.getElementById(`di_${i}`)?.innerText.trim() || "2";
+            const estaEnE8 = document.getElementById(`e8_${i}`)?.checked || false;
+            
+            matriz.push({ id: i, s: sigs, sBase: sBase, sDif: sDif, esE8: estaEnE8 });
+        }
 
-    // 1. CAPTURA DE DATOS
-    for (let i = 1; i <= 14; i++) {
-        const checkE8 = document.getElementById(`e8_${i}`);
-        if (esModoE8 && !(checkE8 && checkE8.checked)) continue;
-
-        const inputPro = document.getElementById(`pro${i}`);
-        const sigs = inputPro ? inputPro.value.toUpperCase().match(/[1X2]/g) : null;
-        if (!sigs) continue;
-
-        const c1 = parseFloat(document.getElementById(`c1_${i}`)?.value.replace(',', '.')) || 0;
-        const cX = parseFloat(document.getElementById(`cX_${i}`)?.value.replace(',', '.')) || 0;
-        const c2 = parseFloat(document.getElementById(`c2_${i}`)?.value.replace(',', '.')) || 0;
-        const cuotas = [{s:'1', v:c1}, {s:'X', v:cX}, {s:'2', v:c2}].filter(o => o.v > 0);
-        
-        const minV = Math.min(...cuotas.map(o => o.v));
-        const maxV = Math.max(...cuotas.map(o => o.v));
-
-        bs.push(cuotas.find(o => o.v === minV)?.s || "1");
-        ds.push(cuotas.find(o => o.v === maxV)?.s || "X");
-        matriz.push({ id: i, s: sigs, c1, cX, c2, minV, maxV });
-    }
-
-    if (matriz.length === 0) return alert("Introduce pronósticos.");
-
-    // 2. GENERACIÓN DEL UNIVERSO BASE
-    let univ = [[]];
-    for (let p of matriz) {
-        let n = [];
-        for (let c of univ) for (let s of p.s) n.push([...c, s]);
-        univ = n;
-    }
-
-    // 3. CAPTURA DE FILTROS POR TRAMOS
-    const getS = id => new Set(Array.from(document.getElementById(id)?.querySelectorAll('.active') || []).map(b => parseInt(b.innerText)));
-    const f = esModoE8 ? { b:getS('btns-e8b'), d:getS('btns-e8d'), u:getS('btns-e8u') } : 
-                         { u18:getS('btns-u-1'), u914:getS('btns-u-2'), b18:getS('btns-b-1'), b914:getS('btns-b-2'), d18:getS('btns-d-1'), d914:getS('btns-d-2') };
-
-    let universoFiltrado = univ.filter(c => {
-        let nU1=0, nU2=0, nB1=0, nB2=0, nD1=0, nD2=0, nU=0, nB=0, nD=0;
-        c.forEach((s, idx) => {
-            const m = matriz[idx];
-            const cJ = (s==='1')? m.c1 : (s==='X'? m.cX : m.c2);
-            const esU=s==='1', esB=Math.abs(cJ-m.minV)<0.01, esD=Math.abs(cJ-m.maxV)<0.01 && m.maxV>m.minV;
-            if(esModoE8) { if(esU)nU++; if(esB)nB++; if(esD)nD++; }
-            else {
-                if(idx<8){ if(esU)nU1++; if(esB)nB1++; if(esD)nD1++; }
-                else { if(esU)nU2++; if(esB)nB2++; if(esD)nD2++; }
+        if (esModoE8) {
+            // --- MODO ELIGE 8: GENERACIÓN TOTAL (SIN REDUCCIÓN) ---
+            const partidosE8 = matriz.filter(p => p.esE8);
+            if (partidosE8.length === 0) {
+                alert("Marca los partidos del Elige 8 con el check.");
+                return;
             }
-        });
-        return esModoE8 ? ((f.u.size===0||f.u.has(nU))&&(f.b.size===0||f.b.has(nB))&&(f.d.size===0||f.d.has(nD))) :
-                          ((f.u18.size===0||f.u18.has(nU1))&&(f.u914.size===0||f.u914.has(nU2))&&(f.b18.size===0||f.b18.has(nB1))&&(f.b914.size===0||f.b914.has(nB2))&&(f.d18.size===0||f.d18.has(nD1))&&(f.d914.size===0||f.d914.has(nD2)));
-    });
 
-    // 4. MOTOR DE REDUCCIÓN (SLIDER SOBRE COBERTURA)
-    const objAciertos = parseInt(document.getElementById('selReduccion')?.value || 14);
-    const porcentajeSlider = parseFloat(document.getElementById('rangePct')?.value || 100);
+            let univE8 = [[]];
+            for (let p of partidosE8) {
+                let n = [];
+                for (let c of univE8) {
+                    for (let s of p.s) n.push([...c, s]);
+                }
+                univE8 = n;
+                if (univE8.length > 50000) univE8 = univE8.slice(0, 50000); 
+            }
 
-    if (objAciertos < 14) {
-        let reduccionFinal = [];
-        let pool = [...universoFiltrado];
-        let cubiertas = new Uint8Array(universoFiltrado.length);
-        let totalCubiertas = 0;
-        const objetivoDeCobertura = Math.floor(universoFiltrado.length * (porcentajeSlider / 100));
+            const getS = id => new Set(Array.from(document.getElementById(id).querySelectorAll('.btn-f.active')).map(b => parseInt(b.innerText)));
+            const fE8 = { b: getS('btns-e8b'), d: getS('btns-e8d') };
 
-        while (totalCubiertas < objetivoDeCobertura && pool.length > 0) {
-            let mejorColIdx = -1, mejorAporte = -1;
-            let numPruebas = Math.min(pool.length, 200); 
+            let filtradasE8 = univE8.filter(colE8 => {
+                let nB = 0, nD = 0;
+                colE8.forEach((signo, idx) => {
+                    if (signo === partidosE8[idx].sBase) nB++;
+                    else if (signo === partidosE8[idx].sDif) nD++;
+                });
+                return (fE8.b.size === 0 || fE8.b.has(nB)) && (fE8.d.size === 0 || fE8.d.has(nD));
+            });
 
-            for (let t = 0; t < numPruebas; t++) {
+            // Rellenamos los partidos del 1 al 6 con tu pronóstico
+            validas = filtradasE8.map(colE8 => {
+                let col14 = new Array(14);
+                partidosE8.forEach((p, idx) => { col14[p.id - 1] = colE8[idx]; });
+                matriz.forEach(p => {
+                    if (!p.esE8) col14[p.id - 1] = p.s[0]; // Coge el primer signo del pronóstico
+                });
+                return col14.map((s, i) => ({ id: i + 1, s: s }));
+            });
+
+        } else {
+            // --- MODO QUINIELA: CON REDUCCIÓN (A LAS 74) ---
+            let univTotal = [[]];
+            for (let p of matriz) {
+                let n = [];
+                for (let c of univTotal) {
+                    for (let s of p.s) n.push([...c, s]);
+                }
+                univTotal = n;
+                if (univTotal.length > 30000) univTotal = univTotal.slice(0, 30000);
+            }
+
+            const obj = parseInt(document.getElementById('selReduccion').value) || 13;
+            const pct = parseFloat(document.getElementById('rangePct').value) || 47;
+            
+            // Motor de reducción limitado a 74 apuestas
+            let resRed = [];
+            let pool = [...univTotal];
+            let cubiertas = new Uint8Array(univTotal.length);
+            let totalC = 0;
+            let meta = Math.floor(univTotal.length * (pct / 100));
+
+            while (totalC < meta && pool.length > 0 && resRed.length < 74) {
                 let rIdx = Math.floor(Math.random() * pool.length);
-                let candidata = pool[rIdx];
-                let aporte = 0;
-                for (let j = 0; j < universoFiltrado.length; j++) {
+                let elegida = pool.splice(rIdx, 1)[0];
+                resRed.push(elegida);
+                for (let j = 0; j < univTotal.length; j++) {
                     if (cubiertas[j] === 0) {
                         let ac = 0;
-                        for (let k = 0; k < 14; k++) { if (candidata[k] === universoFiltrado[j][k]) ac++; }
-                        if (ac >= objAciertos) aporte++;
+                        for (let k = 0; k < 14; k++) { if (elegida[k] === univTotal[j][k]) ac++; }
+                        if (ac >= obj) { cubiertas[j] = 1; totalC++; }
                     }
                 }
-                if (aporte > mejorAporte) { mejorAporte = aporte; mejorColIdx = rIdx; }
-                if (mejorAporte > (universoFiltrado.length / 50)) break; 
             }
+            validas = resRed.map(col => col.map((s, i) => ({ id: i + 1, s: s })));
+        }
 
-            if (mejorColIdx === -1 || mejorAporte === 0) break;
-            let elegida = pool.splice(mejorColIdx, 1)[0];
-            reduccionFinal.push(elegida);
-            for (let j = 0; j < universoFiltrado.length; j++) {
-                if (cubiertas[j] === 0) {
-                    let ac = 0;
-                    for (let k = 0; k < 14; k++) { if (elegida[k] === universoFiltrado[j][k]) ac++; }
-                    if (ac >= objAciertos) { cubiertas[j] = 1; totalCubiertas++; }
-                }
-            }
-        }
-        validas = reduccionFinal.map(col => col.map((s, idx) => ({ id: matriz[idx].id, s })));
-    } else {
-        validas = universoFiltrado.map(col => col.map((s, idx) => ({ id: matriz[idx].id, s })));
-    }
- // 5. ACTUALIZAR UI
-    const elFiltrado = document.getElementById('stFiltrado');
-    if (elFiltrado) elFiltrado.innerText = validas.length;
-    
-    idx = 0;
-    if (validas.length > 0) {
-        pitar(); // Muestra la primera tarjeta
-        
-        if (typeof calcularGarantias === 'function') {
-            calcularGarantias();
-        }
-        
-        // Ejecutamos el escrutinio aquí dentro para que actúe sobre las nuevas validas
-        if (typeof ejecutarEscrutinio === 'function') {
-            ejecutarEscrutinio();
-        }
-    } else {
-        // Si no hay columnas, limpiamos el panel de premios
-        const listaPremios = document.getElementById('listaPremiosRealtime');
-        if (listaPremios) listaPremios.innerHTML = "<div style='color:gray'>Sin columnas</div>";
-        alert("0 columnas encontradas.");
+        // Actualizar UI
+        document.getElementById('stFiltrado').innerText = validas.length;
+        idx = 0;
+        if (typeof pitar === 'function') pitar();
+        if (typeof ejecutarEscrutinio === 'function') ejecutarEscrutinio();
+
+    } catch (err) {
+        console.error("Error en generarApp:", err);
     }
 }
 
