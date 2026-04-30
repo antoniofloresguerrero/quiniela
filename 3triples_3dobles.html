@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Auditor Elige 8 - Dinámico</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f0f2f5; }
+        .box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 1000px; margin: auto; }
+        .grid-btn { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        button { padding: 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
+        .btn-3t { background: #9b59b6; } .btn-4t { background: #3498db; } .btn-6p { background: #27ae60; }
+        button:hover { opacity: 0.8; transform: translateY(-1px); }
+        .main-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
+        .list-container { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 8px; height: 500px; overflow-y: auto; font-family: monospace; font-size: 13px; border: 1px solid #bdc3c7; }
+        .header-list { font-weight: bold; margin-bottom: 10px; color: #2c3e50; text-transform: uppercase; font-size: 0.85em; }
+        #status { margin-bottom: 20px; padding: 15px; border-radius: 8px; background: #e8f4fd; border-left: 5px solid #3498db; font-weight: bold; }
+        .elim { color: #ff7675; } .ref { color: #55efc4; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>Auditoría Dinámica de Apuestas</h2>
+        <div class="grid-btn">
+            <button class="btn-3t" onclick="procesar('3T')">3 Triples (Base 5)</button>
+            <button class="btn-4t" onclick="procesar('4T')">4 Triples (Base 9)</button>
+            <button class="btn-6p" onclick="procesar('6P')">3D + 3T (Base 24)</button>
+        </div>
+        <div id="status">Selecciona un sistema para auditar.</div>
+        
+        <div class="main-grid">
+            <div>
+                <div class="header-list">Apuestas Únicas (A Sellar)</div>
+                <div id="listaUnicas" class="list-container"></div>
+            </div>
+            <div>
+                <div class="header-list">Rastro de Duplicados</div>
+                <div id="listaRepetidas" class="list-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const bases = {
+            '3T': ["111", "1XX", "122", "X12", "21X"],
+            '4T': ["1111", "1XXX", "1222", "X1X2", "XX21", "X21X", "212X", "2X12", "22X1"],
+            '6P': ["111111", "111XXX", "111222", "X11111", "X11XXX", "X11222", "XXX111", "XXXXXX", "XXX222", "1XX111", "1XXXXX", "1XX222", "XX11X2", "XX1X21", "XX121X", "1X112X", "1X1X12", "1X12X1", "11X1X2", "11XX21", "11X21X", "X1X12X", "X1XX12", "X1X2X1"]
+        };
+
+        function procesar(tipo) {
+            const baseActual = bases[tipo];
+            const nPartidos = baseActual[0].length; // Detecta longitud real (3, 4 o 6)
+            let mapaUnicas = new Map();
+            let htmlU = [], htmlR = [];
+            let contadorUnicas = 0;
+
+            baseActual.forEach((apuesta, idxBase) => {
+                for (let i = 0; i < nPartidos; i++) {
+                    let conHueco = "";
+                    for (let j = 0; j < nPartidos; j++) {
+                        conHueco += (i === j) ? "-" : apuesta[j];
+                    }
+
+                    if (mapaUnicas.has(conHueco)) {
+                        let filaOriginal = mapaUnicas.get(conHueco);
+                        htmlR.push(`<span class="elim">ELIMINADA:</span> ${conHueco} <br>&nbsp;&nbsp;→ Idéntica a <span class="ref">Fila Única #${filaOriginal}</span> (Base ${idxBase+1})<br>`);
+                    } else {
+                        contadorUnicas++;
+                        mapaUnicas.set(conHueco, contadorUnicas);
+                        htmlU.push(`<strong>#${contadorUnicas}.</strong> ${conHueco} <small>(Base ${idxBase+1})</small>`);
+                    }
+                }
+            });
+
+            document.getElementById('listaUnicas').innerHTML = htmlU.join("<br>");
+            document.getElementById('listaRepetidas').innerHTML = htmlR.length > 0 ? htmlR.join("<br>") : "No hay duplicados en este sistema: todas las variantes son necesarias.";
+            document.getElementById('status').innerHTML = `Sistema ${tipo} | Únicas: ${contadorUnicas} | Eliminadas: ${ (baseActual.length * nPartidos) - contadorUnicas }`;
+        }
+    </script>
+</body>
+</html>

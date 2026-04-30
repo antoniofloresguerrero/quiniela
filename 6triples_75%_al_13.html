@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificador 75% - 5T + 1D</title>
+</head>
+<body>
+    <div style="font-family:sans-serif; padding:20px; border:1px solid #ccc; max-width:500px; margin:auto; text-align:center;">
+        <h2>Sistema 5 Triples + 1 Doble</h2>
+        <p>Base: 21 apuestas | Objetivo: >75%</p>
+        <button onclick="comprobar()">Verificar Ahora</button>
+        <div id="resultado" style="margin-top:20px; font-weight:bold; font-size:1.2em; color:green;"></div>
+    </div>
+
+    <script>
+        function comprobar() {
+            const t = ['1', 'X', '2'], d = ['1', 'X'];
+            let universo = [];
+            for(let a of t) for(let b of t) for(let c of t) for(let d1 of t) for(let e of t) for(let f of d) {
+                universo.push(a+b+c+d1+e+f);
+            }
+
+          // SUSTITUYE ESTA BASE EN TU PROGRAMA HTML
+const base42 = [
+    "111111", "11X2X1", "112X21", "1X1X21", "1XX1X1", "1X2211", "121211", "12X121", "122XX1",
+    "X11221", "X1X111", "X12XX1", "XX11X1", "XXXX21", "XX2211", "X21XX1", "X2X221", "X221X1",
+    "211X11", "21X121", "2122X1", "2X12X1", "2XX221", "2X2111", "221121", "22X211", "222XX1",
+    "11122X", "X2222X", "2X1X1X", "12X2XX", "X1212X", "11XX1X", "X1X22X", "2X2XX1", "12112X",
+    "21X21X", "XX12XX", "22211X", "1X21XX", "X112X1", "2XX12X"
+];
+
+
+            let misBloques = [];
+            base42.forEach(ap => {
+                for(let i=0; i<6; i++) {
+                    let s = ""; for(let j=0; j<6; j++) if(i!==j) s += ap[j];
+                    misBloques.push({s, h:i});
+                }
+            });
+
+            let aciertos = 0;
+            universo.forEach(real => {
+                let ok = false;
+                for(let b of misBloques) {
+                    let rRec = "";
+                    for(let i=0; i<6; i++) if(i!==b.h) rRec += real[i];
+                    if(rRec === b.s) { ok = true; break; }
+                }
+                if(ok) aciertos++;
+            });
+
+            const porc = (aciertos / 486 * 100).toFixed(2);
+            document.getElementById('resultado').innerHTML = `¡ACIERTO: ${aciertos} de 486 (${porc}%)!`;
+        }
+    </script>
+</body>
+</html>

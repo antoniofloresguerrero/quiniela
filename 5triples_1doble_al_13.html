@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Generador Oficial Elige 8 - 144 Filas</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; background: #eef2f3; color: #333; }
+        .box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); max-width: 700px; margin: auto; }
+        h2 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; margin-top: 0; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 1; padding: 15px; border-radius: 6px; border: none; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.3s; }
+        .btn-verificar { background: #3498db; color: white; }
+        .btn-descargar { background: #27ae60; color: white; }
+        button:hover { opacity: 0.8; transform: translateY(-2px); }
+        pre { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; overflow-x: auto; font-size: 13px; max-height: 300px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>Estrategia Elige 8 (144 Apuestas)</h2>
+        <p>Basado en la Reducción Tercera (3D + 3T) oficial de tu imagen.</p>
+        
+        <div class="btn-group">
+            <button class="btn-verificar" onclick="verificar()">1. Verificar 100%</button>
+            <button class="btn-descargar" onclick="generarTXT()">2. Descargar TXT (144 filas)</button>
+        </div>
+
+        <div id="status" style="margin-top:15px; font-weight:bold; text-align:center;"></div>
+        <pre id="preview" style="display:none;"></pre>
+    </div>
+
+    <script>
+        const base24 = [
+            "111111", "111XXX", "111222", "X11111", "X11XXX", "X11222",
+            "XXX111", "XXXXXX", "XXX222", "1XX111", "1XXXXX", "1XX222",
+            "XX11X2", "XX1X21", "XX121X", "1X112X", "1X1X12", "1X12X1",
+            "11X1X2", "11XX21", "11X21X", "X1X12X", "X1XX12", "X1X2X1"
+        ];
+
+        function generarVariantes() {
+            let filas = [];
+            base24.forEach((apuesta, index) => {
+                for (let i = 0; i < 6; i++) {
+                    let conHueco = "";
+                    for (let j = 0; j < 6; j++) {
+                        conHueco += (i === j) ? "-" : apuesta[j];
+                    }
+                    filas.push(`Base${index+1}_Var${i+1}: ${conHueco}`);
+                }
+            });
+            return filas;
+        }
+
+        function generarTXT() {
+            const filas = generarVariantes();
+            const contenido = filas.join("\n");
+            
+            // Mostrar vista previa
+            const preview = document.getElementById('preview');
+            preview.style.display = "block";
+            preview.textContent = contenido;
+
+            // Crear descarga
+            const blob = new Blob([contenido], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'elige8_oficial_144.txt';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.getElementById('status').innerHTML = "✅ Archivo 'elige8_oficial_144.txt' descargado.";
+        }
+
+        function verificar() {
+            const d = ['1', 'X'], t = ['1', 'X', '2'];
+            let universo = [];
+            for(let d1 of d) for(let d2 of d) for(let d3 of d) 
+            for(let t1 of t) for(let t2 of t) for(let t3 of t) universo.push(d1+d2+d3+t1+t2+t3);
+
+            let misBloques = [];
+            base24.forEach(ap => {
+                for(let i=0; i<6; i++) {
+                    let s = ""; for(let j=0; j<6; j++) if(i!==j) s += ap[j];
+                    misBloques.push({s, h:i});
+                }
+            });
+
+            let aciertos = 0;
+            universo.forEach(real => {
+                let ok = false;
+                for(let b of misBloques) {
+                    let r = ""; for(let i=0; i<6; i++) if(i!==b.h) r += real[i];
+                    if(r === b.s) { ok = true; break; }
+                }
+                if(ok) aciertos++;
+            });
+            document.getElementById('status').innerHTML = `Garantía Verificada: ${(aciertos/216*100).toFixed(2)}% (${aciertos}/216)`;
+        }
+    </script>
+</body>
+</html>

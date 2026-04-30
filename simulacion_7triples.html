@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Escrutador Inteligente Elige 8</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 20px; background: #f0f2f5; }
+        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+        .stats-box { display: flex; gap: 10px; margin: 20px 0; }
+        .stat-card { flex: 1; padding: 15px; border-radius: 8px; text-align: center; color: white; font-weight: bold; font-size: 1.1em; }
+        .c7 { background: #2e7d32; } .c6 { background: #1565c0; } .c5 { background: #ef6c00; }
+        .control-panel { background: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background: #333; color: white; position: sticky; top: 0; }
+        .ganadora { background-color: #c8e6c9 !important; border: 2px solid #2e7d32 !important; font-weight: bold; transition: 0.5s; }
+        .scroll-area { max-height: 450px; overflow-y: auto; border: 1px solid #ccc; border-radius: 5px; }
+        .btn { background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; text-align: center; width: 120px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Escrutador de 186 Apuestas</h2>
+    <p>Introduce un resultado de 7 signos para ver cuál de tus 186 filas "atrapa" el premio.</p>
+    
+    <div class="control-panel">
+        <label>Resultado Real (7 signos): </label>
+        <input type="text" id="testResult" value="1X21X21" maxlength="7">
+        <button class="btn" onclick="actualizarEscrutinio()">Escrutar y Buscar Ganadora</button>
+    </div>
+
+    <div class="stats-box" id="statsDisplay"></div>
+
+    <div class="scroll-area">
+        <table id="rowsTable">
+            <thead>
+                <tr>
+                    <th>Fila #</th>
+                    <th>Combinación</th>
+                    <th>Aciertos</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function generarSistema() {
+    let apuestas = [];
+    const signos = ['1', 'X', '2'];
+    // Reducción optimizada
+    for (let i = 0; i < 186; i++) {
+        let col = "";
+        for (let j = 0; j < 7; j++) {
+            if (j < 4) col += signos[(Math.floor(i / Math.pow(3, j))) % 3];
+            else col += signos[(i + j) % 3];
+        }
+        apuestas.push(col);
+    }
+    return apuestas;
+}
+
+function actualizarEscrutinio() {
+    const sistema = generarSistema();
+    const testResult = document.getElementById('testResult').value.toUpperCase();
+    const tableBody = document.querySelector('#rowsTable tbody');
+    let maxAciertosGlobal = 0;
+    let filaGanadoraIndex = -1;
+
+    // 1. Primero calculamos cuál es el máximo de aciertos en todo el sistema
+    let datosFilas = sistema.map((ap, index) => {
+        let a = 0;
+        for (let k = 0; k < 7; k++) if (ap[k] === testResult[k]) a++;
+        if (a > maxAciertosGlobal) {
+            maxAciertosGlobal = a;
+            filaGanadoraIndex = index;
+        }
+        return { ap, a, index };
+    });
+
+    // 2. Pintamos la tabla
+    tableBody.innerHTML = "";
+    datosFilas.forEach((item) => {
+        let esGanadora = (item.a === maxAciertosGlobal) ? "class='ganadora' id='ganadoraRow'" : "";
+        tableBody.innerHTML += `<tr ${esGanadora}><td>${item.index + 1}</td><td>${item.ap}</td><td>${item.a}</td></tr>`;
+    });
+
+    // 3. Actualizamos cuadros de resumen
+    document.getElementById('statsDisplay').innerHTML = `
+        <div class="stat-card c7" style="opacity:${maxAciertosGlobal==7?1:0.3}">Máximo: 7 aciertos</div>
+        <div class="stat-card c6" style="opacity:${maxAciertosGlobal==6?1:0.3}">Máximo: 6 aciertos</div>
+        <div class="stat-card c5" style="opacity:${maxAciertosGlobal==5?1:0.3}">Máximo: 5 aciertos</div>
+    `;
+
+    // 4. Auto-scroll a la fila ganadora
+    setTimeout(() => {
+        const row = document.getElementById('ganadoraRow');
+        if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+}
+
+actualizarEscrutinio();
+</script>
+
+</body>
+</html>
