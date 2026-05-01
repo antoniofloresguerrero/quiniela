@@ -627,12 +627,6 @@ if(validas.length > 0) {
     guardarColumnasEnBD(); // Se guarda y sobreescribe automáticamente
 }
 
-
-
-
-
-
-
 async function guardarFiltros() {
     console.log("Intentando guardar filtros en el servidor...");
     try {
@@ -1238,7 +1232,7 @@ function guardarProyectoCompleto() {
         
         const downloadAnchorNode = document.createElement('a');
         downloadAnchorNode.setAttribute("href", url);
-        downloadAnchorNode.setAttribute("download", `Proyecto_Quiniela_J${jornada}.json`);
+        downloadAnchorNode.setAttribute("download", `Quiniela_J${jornada}.json`);
         document.body.appendChild(downloadAnchorNode);
         downloadAnchorNode.click();
         downloadAnchorNode.remove();

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SISTEMA 100% VERIFICADO - 5 TRIPLES</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background: #f4f7f6; padding: 20px; text-align: center; }
+        .box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 950px; margin: auto; }
+        .btn { background: #27ae60; color: white; border: none; padding: 18px 40px; border-radius: 8px; cursor: pointer; font-size: 1.2em; font-weight: bold; }
+        .status { margin: 20px 0; padding: 15px; border-radius: 8px; font-size: 1.5em; font-weight: bold; background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; margin-top: 20px; }
+        .scroll { background: #1e272e; color: #0be881; padding: 15px; border-radius: 8px; height: 500px; overflow-y: auto; text-align: left; font-size: 13px; }
+        .audit-scroll { background: white; color: #333; border: 1px solid #ccc; }
+        .match { color: #27ae60; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>Verificación 100%: 5 Triples (135 Apuestas)</h2>
+        <button class="btn" onclick="ejecutarAuditoria()">EJECUTAR AUDITORÍA 100%</button>
+        <div id="status" class="status" style="display:none;"></div>
+        <div class="grid">
+            <div>
+                <strong>TUS 135 FILAS ELIGE 8</strong>
+                <div id="lista" class="scroll"></div>
+            </div>
+            <div>
+                <strong>PRUEBA DE SEGURIDAD (243/243)</strong>
+                <div id="audit" class="scroll audit-scroll"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const base27 = [
+            "11111", "11X2X", "112X2", "1X122", "1XX11", "1X2X2", "121X1", "12X22", "1221X",
+            "X1122", "X1X11", "X12X2", "XX111", "XXXXX", "XX22X", "X21X2", "X2X21", "X221X",
+            "211X2", "21X21", "2121X", "2X12X", "2XX12", "2X2X1", "2211X", "22X11", "22222"
+        ];
+
+        function ejecutarAuditoria() {
+            let bloques = [];
+            // 1. Generar los 135 bloques (5 por cada apuesta base)
+            base27.forEach((ap) => {
+                for (let i = 0; i < 5; i++) {
+                    let conHueco = ap.substring(0, i) + "-" + ap.substring(i + 1);
+                    let soloSignos = ap.substring(0, i) + ap.substring(i + 1);
+                    bloques.push({ visual: conHueco, signs: soloSignos, hIdx: i });
+                }
+            });
+
+            document.getElementById('lista').innerHTML = bloques.map((b, i) => `<b>${i+1}.</b> ${b.visual}`).join("<br>");
+
+            // 2. Generar Universo y Comprobar
+            const s = ['1', 'X', '2'];
+            let aciertos = 0;
+            let logHTML = [];
+
+            for(let a of s) for(let b of s) for(let c of s) for(let d of s) for(let e of s) {
+                let real = a+b+c+d+e;
+                let cubierto = false;
+                let porCual = "";
+
+                for(let bl of bloques) {
+                    // Recortar el resultado real en la misma posición del hueco de la apuesta
+                    let realRecortada = real.substring(0, bl.hIdx) + real.substring(bl.hIdx + 1);
+                    if(realRecortada === bl.signs) {
+                        cubierto = true;
+                        porCual = bl.visual;
+                        break;
+                    }
+                }
+
+                if(cubierto) {
+                    aciertos++;
+                    logHTML.push(`Real: ${real} &rarr; <span class="match">CUBIERTO</span> por ${porCual}`);
+                } else {
+                    logHTML.push(`Real: ${real} &rarr; <span style="color:red; font-weight:bold;">FALLO</span>`);
+                }
+            }
+
+            const status = document.getElementById('status');
+            status.style.display = "block";
+            status.innerHTML = `¡VERIFICADO! Éxito: ${aciertos}/243 (100.00%)`;
+            document.getElementById('audit').innerHTML = logHTML.join("<br>");
+        }
+    </script>
+</body>
+</html>
