@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reductor Elige 8 - Motor de Cobertura Real</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 15px; background: #f0f2f5; font-size: 12px; }
+        .container { background: white; padding: 25px; border-radius: 12px; max-width: 1050px; margin: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        th, td { border: 1px solid #ddd; padding: 6px; text-align: center; }
+        th { background: #2c3e50; color: white; }
+        .grid-filtros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ddd; }
+        button { background: #27ae60; color: white; border: none; padding: 18px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; font-size: 1.2em; transition: 0.3s; }
+        button:hover { background: #219150; }
+        .resumen { background: #212529; color: white; padding: 20px; display: flex; justify-content: space-around; border-radius: 10px; margin-top: 15px; }
+        .resumen b { color: #f1c40f; font-size: 1.5em; }
+        #listadoApuestas { width: 100%; height: 350px; margin-top: 15px; font-family: 'Courier New', monospace; background: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 5px; overflow-y: scroll; border: 1px solid #333; }
+        .apuesta-linea { border-bottom: 1px solid #333; display: flex; justify-content: space-between; padding: 3px 0; }
+        .aciertos-txt { color: #f1c40f; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Estructurador Elige 8: Reducción Máxima y Escrutinio</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>P.</th><th>Pronóstico</th><th>Check E8</th><th>Cuota 1</th><th>Cuota X</th><th>Cuota 2</th><th>B / D</th><th style="background:#f39c12; color:white">REAL</th>
+            </tr>
+        </thead>
+        <tbody id="tablaBody"></tbody>
+    </table>
+
+    <div class="grid-filtros">
+        <div><label><b>UNOS:</b></label><input type="text" id="fUnos" value="3,4,5,6" style="width:100%"></div>
+        <div><label><b>BASES:</b></label><input type="text" id="fBases" value="4,5,6" style="width:100%"></div>
+        <div><label><b>DIFÍCILES:</b></label><input type="text" id="fDificiles" value="0,1,2" style="width:100%"></div>
+        <div><label><b>Cobertura %:</b></label><input type="number" id="fPct" value="100" style="width:100%"></div>
+    </div>
+
+    <button onclick="ejecutarReduccion()">GENERAR REDUCCIÓN EFICIENTE</button>
+    <button onclick="escrutar()" style="background:#3498db; margin-top:5px">COMPROBAR CADA COLUMNA</button>
+
+    <div class="resumen">
+        <div>Filtradas: <b id="outF">0</b></div>
+        <div>Reducidas: <b id="outR">0</b></div>
+        <div>Máx Aciertos: <b id="outMax">-</b></div>
+        <div>Coste: <b id="outC">0 €</b></div>
+    </div>
+
+    <div id="listadoApuestas"></div>
+</div>
+
+<script>
+let apuestasGlobal = [];
+let indicesE8 = [];
+
+const body = document.getElementById('tablaBody');
+for(let i=1; i<=14; i++) {
+    body.innerHTML += `<tr>
+        <td>${i}</td>
+        <td><input type="text" id="p${i}" value="1X2" style="width:45px"></td>
+        <td><input type="checkbox" id="chk${i}" ${i<=8?'checked':''}></td>
+        <td><input type="number" step="0.1" id="q1_${i}" value="1.8" style="width:40px"></td>
+        <td><input type="number" step="0.1" id="qX_${i}" value="3.4" style="width:40px"></td>
+        <td><input type="number" step="0.1" id="q2_${i}" value="4.5" style="width:40px"></td>
+        <td id="inf${i}" style="font-size:10px; font-weight:bold; color:#007bff">-</td>
+        <td><input type="text" id="res${i}" style="width:25px; text-align:center"></td>
+    </tr>`;
+}
+
+function ejecutarReduccion() {
+    let sel = []; indicesE8 = [];
+    const uP = document.getElementById('fUnos').value.split(',').map(Number);
+    const bP = document.getElementById('fBases').value.split(',').map(Number);
+    const dP = document.getElementById('fDificiles').value.split(',').map(Number);
+    const target = parseFloat(document.getElementById('fPct').value) / 100;
+
+    for(let i=1; i<=14; i++) {
+        if(document.getElementById(`chk${i}`).checked) {
+            let qs = [{s:'1',v:parseFloat(document.getElementById(`q1_${i}`).value)},
+                      {s:'X',v:parseFloat(document.getElementById(`qX_${i}`).value)},
+                      {s:'2',v:parseFloat(document.getElementById(`q2_${i}`).value)}].sort((a,b)=>a.v-b.v);
+            let base = qs[0].s; let dificil = qs[2].s;
+            sel.push({ prono: document.getElementById(`p${i}`).value.toUpperCase().split(''), base, dificil });
+            indicesE8.push(i);
+            document.getElementById(`inf${i}`).innerText = `B:${base}|D:${dificil}`;
+        }
+    }
+
+    let uni = [];
+    function gen(idx, comb, u, b, d) {
+        if(idx === sel.length) {
+            if(uP.includes(u) && bP.includes(b) && dP.includes(d)) uni.push(comb.join(''));
+            return;
+        }
+        sel[idx].prono.forEach(s => {
+            gen(idx+1, [...comb, s], u+(s==='1'?1:0), b+(s===sel[idx].base?1:0), d+(s===sel[idx].dificil?1:0));
+        });
+    }
+    gen(0, [], 0, 0, 0);
+
+    if(uni.length === 0) return alert("Filtros incompatibles.");
+
+    let noCub = new Set(uni);
+    apuestasGlobal = [];
+    const n = sel.length;
+    const pares = [];
+    for(let i=0; i<n; i++) for(let j=i+1; j<n; j++) pares.push([i, j]);
+
+    let pool = [...uni];
+    while(noCub.size > uni.length * (1 - target) && pool.length > 0) {
+        let mejorApuesta = ""; let mejorPar = null; let maxCub = -1; let cubiertosXEsta = [];
+        
+        // Buscamos cuál es la mejor apuesta del universo para cubrir lo que falta
+        for(let base of pool.slice(0, 200)) { 
+            for(let p of pares) {
+                let cub = [];
+                ['1','X','2'].forEach(h1 => ['1','X','2'].forEach(h2 => {
+                    let copia = base.split(''); copia[p[0]]=h1; copia[p[1]]=h2;
+                    let s = copia.join(''); if(noCub.has(s)) cub.push(s);
+                }));
+                if(cub.length > maxCub) { maxCub = cub.length; mejorApuesta = base; mejorPar = p; cubiertosXEsta = cub; }
+                if(maxCub >= 9) break;
+            }
+            if(maxCub >= 9) break;
+        }
+        if(maxCub <= 0) break;
+        cubiertosXEsta.forEach(s => noCub.delete(s));
+        let vis = mejorApuesta.split(''); vis[mejorPar[0]]="_"; vis[mejorPar[1]]="_";
+        apuestasGlobal.push(vis.join(''));
+        pool = pool.filter(a => a !== mejorApuesta);
+    }
+
+    document.getElementById('outF').innerText = uni.length;
+    document.getElementById('outR').innerText = apuestasGlobal.length;
+    document.getElementById('outC').innerText = (apuestasGlobal.length * 1.25).toFixed(2) + " €";
+    
+    document.getElementById('listadoApuestas').innerHTML = apuestasGlobal.map((ap, i) => 
+        `<div class="apuesta-linea"><span>[${i+1}] ${ap.split('').join(' ')}</span><span id="ac_${i}" class="aciertos-txt">-</span></div>`).join('');
+}
+
+function escrutar() {
+    if(apuestasGlobal.length === 0) return;
+    let real = indicesE8.map(idx => document.getElementById(`res${idx}`).value.toUpperCase());
+    if(real.includes("")) return alert("Pon los resultados reales.");
+    let maxA = 0;
+    apuestasGlobal.forEach((ap, i) => {
+        let a = 0; let s = ap.split('');
+        for(let j=0; j<s.length; j++) if(s[j] === real[j]) a++;
+        document.getElementById(`ac_${i}`).innerText = a + " aciertos";
+        if(a > maxA) maxA = a;
+    });
+    document.getElementById('outMax').innerText = maxA;
+}
+</script>
+</body>
+</html>
