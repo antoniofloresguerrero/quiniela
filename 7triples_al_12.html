@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Analizador Elige 8 - Fix Final Guardar</title>
+    <title>Analizador Elige 8  Final</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 10px; background: #1a202c; color: #fff; font-size: 11px; }
         .container { background: #2d3748; padding: 15px; border-radius: 10px; max-width: 1300px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
@@ -30,13 +30,13 @@
 <body>
 <div class="container">
     <div class="header-box">
-        <div><b>H:</b> 
+        <div><b>Distancias:</b> 
             <select id="selHuecos" style="background:#2d3748; color:#fff; border:1px solid #4a5568; border-radius:4px;">
                 <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
             </select>
         </div>
         <div style="flex-grow: 1; display: flex; align-items: center; gap: 10px;">
-            <b>Cob:</b> <input type="range" id="fPct" min="1" max="100" value="100" oninput="document.getElementById('pctVal').innerText = this.value + '%'" style="flex-grow:1">
+            <b>Cobertura:</b> <input type="range" id="fPct" min="1" max="100" value="100" oninput="document.getElementById('pctVal').innerText = this.value + '%'" style="flex-grow:1">
             <span id="pctVal" style="font-weight:bold; color:#63b3ed; width:35px;">100%</span>
         </div>
         <div class="resumen-total">
@@ -48,9 +48,9 @@
         </div>
     </div>
     <div class="panel-superior">
-        <div class="filtro-seccion"><h3>Unos (Signo 1)</h3><div class="btn-grid" id="gridUnos"></div></div>
-        <div class="filtro-seccion"><h3>Bases (Favs)</h3><div class="btn-grid" id="gridBases"></div></div>
-        <div class="filtro-seccion"><h3>Difíciles (Bombas)</h3><div class="btn-grid" id="gridDificiles"></div></div>
+        <div class="filtro-seccion"><h3>Unos</h3><div class="btn-grid" id="gridUnos"></div></div>
+        <div class="filtro-seccion"><h3>Bases</h3><div class="btn-grid" id="gridBases"></div></div>
+        <div class="filtro-seccion"><h3>Difíciles</h3><div class="btn-grid" id="gridDificiles"></div></div>
         <div class="action-grid">
             <button class="btn-main btn-gen" onclick="generar()">GENERAR</button>
             <button class="btn-main btn-esc" onclick="escrutar()">ESCRUTAR</button>
@@ -60,7 +60,7 @@
         </div>
     </div>
     <table id="mainTable">
-        <thead><tr><th>P.</th><th>Prono</th><th>E8</th><th>C1</th><th>CX</th><th>C2</th><th>B / D</th><th style="background:#d69e2e">REAL</th></tr></thead>
+        <thead><tr><th>P.</th><th>Pronóstico</th><th>E8</th><th>1</th><th>X</th><th>2</th><th>B / D</th><th style="background:#d69e2e">REAL</th></tr></thead>
         <tbody id="tablaBody"></tbody>
     </table>
     <div id="listadoApuestas"></div>
