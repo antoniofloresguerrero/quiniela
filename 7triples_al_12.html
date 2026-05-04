@@ -2,20 +2,19 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Analizador Elige 8 - Escrutinio Real de Filtros</title>
+    <title>Analizador Elige 8 - SOLUCIÓN FINAL</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 10px; background: #1a202c; color: #fff; font-size: 11px; }
-        .container { background: #2d3748; padding: 15px; border-radius: 10px; max-width: 1200px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .container { background: #2d3748; padding: 15px; border-radius: 10px; max-width: 1300px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         
         /* BARRA SUPERIOR */
-        .header-box { background: #1a202c; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; border: 1px solid #4a5568; }
-        .resumen-total { flex-grow: 1; display: flex; justify-content: space-around; background: #2d3748; padding: 8px; border-radius: 6px; border: 1px solid #4a5568; align-items: center; }
-        .resumen-total div { text-align: center; padding: 0 5px; }
-        .resumen-total b { color: #63b3ed; font-size: 13px; display: block; }
-        .real-stats { border-left: 2px solid #4a5568; padding-left: 15px !important; color: #f1c40f; }
-        .real-stats b { color: #f1c40f !important; display: inline !important; font-size: 13px !important; }
+        .header-box { background: #1a202c; padding: 8px 15px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; border: 1px solid #4a5568; }
+        .resumen-total { flex-grow: 1; display: flex; justify-content: space-between; align-items: center; background: #2d3748; padding: 5px 15px; border-radius: 6px; border: 1px solid #4a5568; }
+        .resumen-total div { white-space: nowrap; font-size: 11px; }
+        .resumen-total b { color: #63b3ed; font-size: 13px; margin-left: 3px; }
+        .real-stats { color: #f1c40f !important; border-left: 1px solid #4a5568; padding-left: 15px; font-weight: bold; }
 
-        /* FILTROS Y ACCIONES */
+        /* PANEL FILTROS + BOTONES */
         .panel-superior { display: grid; grid-template-columns: 1fr 1fr 1fr 160px; gap: 10px; margin-bottom: 10px; }
         .filtro-seccion { background: #1a202c; padding: 6px; border-radius: 6px; border: 1px solid #4a5568; }
         .filtro-seccion h3 { font-size: 9px; color: #63b3ed; text-transform: uppercase; margin: 0 0 5px 0; border-bottom: 1px solid #4a5568; }
@@ -31,49 +30,36 @@
         table { width: 100%; border-collapse: collapse; background: #1a202c; margin-bottom: 10px; font-size: 10px; }
         th, td { padding: 3px; text-align: center; border: 1px solid #4a5568; }
         th { background: #2d3748; color: #a0aec0; }
-        input { background: #1a202c; border: 1px solid #4a5568; color: #fff; text-align: center; font-size: 10px; width: 32px; }
+        input { background: #1a202c; border: 1px solid #4a5568; color: #fff; text-align: center; font-size: 10px; width: 35px; border-radius: 2px; }
         
         #listadoApuestas { width: 100%; height: 250px; font-family: monospace; background: #000; color: #00ff00; padding: 10px; border-radius: 5px; overflow-y: scroll; border: 1px solid #4a5568; font-size: 11px; }
         .linea { border-bottom: 1px solid #2d3748; padding: 4px; display: flex; justify-content: space-between; align-items: center; }
-        .ganadora { background: #2d5a27; color: #fff; font-weight: bold; }
+        .ganadora { background: #2d5a27 !important; color: #fff; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header-box">
-        <div style="min-width: 90px;">
-            <b>Jornada:</b> <input type="number" id="jornada" value="55" style="width:35px">
-        </div>
+        <div><b>J:</b> <input type="number" id="jornada" value="55" style="width:30px"></div>
         <div style="flex-grow: 1; display: flex; align-items: center; gap: 10px;">
-            <b>Cobertura:</b> 
+            <b>Cob:</b> 
             <input type="range" id="fPct" min="1" max="100" value="100" oninput="document.getElementById('pctVal').innerText = this.value + '%'" style="flex-grow: 1;">
             <span id="pctVal" style="font-weight:bold; color:#63b3ed; width:35px;">100%</span>
         </div>
         <div class="resumen-total">
-            <div>Filtradas <b id="outF">0</b></div>
-            <div>Apuestas <b id="outR">0</b></div>
-            <div>Coste <b id="outC">0.00 €</b></div>
-            <div>Máx Ac. <b id="outMax">-</b></div>
-            <div class="real-stats">
-                REAL -> Unos: <b id="rUnos">-</b> | Bases: <b id="rBases">-</b> | Dif: <b id="rDificiles">-</b>
-            </div>
+            <div>Filtradas:<b id="outF">0</b></div>
+            <div>Apuestas:<b id="outR">0</b></div>
+            <div>Coste:<b id="outC">0.00€</b></div>
+            <div>Máx Ac.:<b id="outMax">-</b></div>
+            <div class="real-stats">REAL -> U:<b id="rUnos">-</b> | B:<b id="rBases">-</b> | D:<b id="rDificiles">-</b></div>
         </div>
     </div>
 
     <div class="panel-superior">
-        <div class="filtro-seccion">
-            <h3>Unos (Signo 1)</h3>
-            <div class="btn-grid" id="gridUnos"></div>
-        </div>
-        <div class="filtro-seccion">
-            <h3>Bases (Favoritos)</h3>
-            <div class="btn-grid" id="gridBases"></div>
-        </div>
-        <div class="filtro-seccion">
-            <h3>Difíciles (Bombas)</h3>
-            <div class="btn-grid" id="gridDificiles"></div>
-        </div>
+        <div class="filtro-seccion"><h3>Unos (Signo 1)</h3><div class="btn-grid" id="gridUnos"></div></div>
+        <div class="filtro-seccion"><h3>Bases (Favs)</h3><div class="btn-grid" id="gridBases"></div></div>
+        <div class="filtro-seccion"><h3>Difíciles (Bombas)</h3><div class="btn-grid" id="gridDificiles"></div></div>
         <div class="action-grid">
             <button class="btn-main btn-gen" onclick="generar()">GENERAR</button>
             <button class="btn-main btn-esc" onclick="escrutar()">ESCRUTAR</button>
@@ -98,31 +84,25 @@ let apuestasGlobal = [];
 let indicesE8 = [];
 const filtros = { unos: new Set(), bases: new Set(), dificiles: new Set() };
 
-function crearBotones(containerId, setRef, max) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-    for(let i=0; i<=max; i++) {
-        const btn = document.createElement('button');
-        btn.innerText = i;
-        btn.className = 'btn-num' + (setRef.has(i) ? ' active' : '');
+function crearBotones(id, setRef) {
+    const cont = document.getElementById(id); cont.innerHTML = '';
+    for(let i=0; i<=8; i++) {
+        const btn = document.createElement('button'); btn.innerText = i; btn.className = 'btn-num' + (setRef.has(i) ? ' active' : '');
         btn.onclick = () => { if(setRef.has(i)) setRef.delete(i); else setRef.add(i); btn.classList.toggle('active'); };
-        container.appendChild(btn);
+        cont.appendChild(btn);
     }
 }
-
-crearBotones('gridUnos', filtros.unos, 8);
-crearBotones('gridBases', filtros.bases, 8);
-crearBotones('gridDificiles', filtros.dificiles, 8);
+crearBotones('gridUnos', filtros.unos); crearBotones('gridBases', filtros.bases); crearBotones('gridDificiles', filtros.dificiles);
 
 const body = document.getElementById('tablaBody');
 for(let i=1; i<=14; i++) {
     body.innerHTML += `<tr>
         <td>${i}</td>
-        <td><input type="text" id="p${i}" value="1X2" style="width:40px"></td>
-        <td><input type="checkbox" id="chk${i}" ${i<=8?'checked':''}></td>
-        <td><input type="number" step="0.1" id="q1_${i}" value="1.8"></td>
-        <td><input type="number" step="0.1" id="qX_${i}" value="3.2"></td>
-        <td><input type="number" step="0.1" id="q2_${i}" value="4.5"></td>
+        <td><input type="text" id="p${i}" value="1X2" oninput="actualizarBD()"></td>
+        <td><input type="checkbox" id="chk${i}" ${i<=8?'checked':''} onchange="actualizarBD()"></td>
+        <td><input type="number" step="0.1" id="q1_${i}" value="1.8" oninput="actualizarBD()"></td>
+        <td><input type="number" step="0.1" id="qX_${i}" value="3.2" oninput="actualizarBD()"></td>
+        <td><input type="number" step="0.1" id="q2_${i}" value="4.5" oninput="actualizarBD()"></td>
         <td id="inf${i}" style="color:#63b3ed; font-weight:bold; font-size:9px;">-</td>
         <td><input type="text" id="res${i}" style="width:20px; background:#2d3748; border:none; color:white;"></td>
     </tr>`;
@@ -135,43 +115,55 @@ function actualizarBD() {
         let qX = parseFloat(document.getElementById(`qX_${i}`).value) || 3.0;
         let q2 = parseFloat(document.getElementById(`q2_${i}`).value) || 4.0;
         let qs = [{s:'1',v:q1}, {s:'X',v:qX}, {s:'2',v:q2}].sort((a,b)=>a.v-b.v);
-        document.getElementById(`inf${i}`).innerText = `B:${qs[0].s}|D:${qs[2].s}`;
+        
+        let fav = qs[0].s; let bomb = qs[2].s; // Corregido: acceso por índice
+        document.getElementById(`inf${i}`).innerText = `B:${fav}|D:${bomb}`;
+        
         if(document.getElementById(`chk${i}`).checked) {
-            sel.push({ prono: document.getElementById(`p${i}`).value.toUpperCase().split(''), base: qs[0].s, dificil: qs[2].s });
+            sel.push({ p: document.getElementById(`p${i}`).value.toUpperCase().split(''), b: fav, d: bomb });
             indicesE8.push(i);
         }
     }
     return sel;
 }
+actualizarBD();
 
 function generar() {
     const sel = actualizarBD();
     const target = parseInt(document.getElementById('fPct').value) / 100;
     let uni = [];
+    
     function gen(idx, comb, u, b, d) {
         if(idx === sel.length) {
-            if(filtros.unos.has(u) && filtros.bases.has(b) && filtros.dificiles.has(d)) uni.push(comb.join(''));
+            // REGLA: Si el Set está vacío, no filtra (pasa el check)
+            const okU = (filtros.unos.size === 0 || filtros.unos.has(u));
+            const okB = (filtros.bases.size === 0 || filtros.bases.has(b));
+            const okD = (filtros.dificiles.size === 0 || filtros.dificiles.has(d));
+            if(okU && okB && okD) uni.push(comb.join(''));
             return;
         }
-        sel[idx].prono.forEach(s => gen(idx+1, [...comb, s], u+(s==='1'?1:0), b+(s===sel[idx].base?1:0), d+(s===sel[idx].dificil?1:0)));
+        sel[idx].p.forEach(s => {
+            gen(idx+1, [...comb, s], u+(s==='1'?1:0), b+(s===sel[idx].b?1:0), d+(s===sel[idx].d?1:0));
+        });
     }
     gen(0, [], 0, 0, 0);
-    if(uni.length === 0) return alert("Filtro vacío.");
+
+    if(uni.length === 0) return alert("Filtro sin resultados.");
     document.getElementById('outF').innerText = uni.length;
 
+    // Reducción Greedy Real
     let noCub = new Set(uni); apuestasGlobal = [];
-    const pares = [];
-    for(let i=0; i<sel.length; i++) for(let j=i+1; j<sel.length; j++) pares.push([i, j]);
+    const pares = []; for(let i=0; i<sel.length; i++) for(let j=i+1; j<sel.length; j++) pares.push([i, j]);
 
     let pool = Array.from(noCub);
     while(noCub.size > uni.length * (1 - target) && pool.length > 0) {
         let mejorA = "", mejorP = null, maxN = -1, mejoresC = [];
-        let muestra = pool.slice(0, 300);
-        for(let base of muestra) {
+        let poolMuestra = pool.slice(0, 300);
+        for(let base of poolMuestra) {
             for(let p of pares) {
                 let current = [];
                 ['1','X','2'].forEach(h1 => ['1','X','2'].forEach(h2 => {
-                    let c = base.split(''); c[p[0]]=h1; c[p[1]]=h2;
+                    let c = base.split(''); c[p[0]]=h1; c[p[1]]=h2; 
                     let s = c.join(''); if(noCub.has(s)) current.push(s);
                 }));
                 if(current.length > maxN) { maxN = current.length; mejorA = base; mejorP = p; mejoresC = current; }
@@ -182,87 +174,72 @@ function generar() {
         if(maxN <= 0) break;
         mejoresC.forEach(s => noCub.delete(s));
         let v = mejorA.split(''); v[mejorP[0]]="_"; v[mejorP[1]]="_";
-        apuestasGlobal.push({ signos: v.join(''), aciertos: 0 });
+        apuestasGlobal.push({ s: v.join(''), ac: 0 });
         pool = pool.filter(a => a !== mejorA);
     }
     document.getElementById('outR').innerText = apuestasGlobal.length;
-    document.getElementById('outC').innerText = (apuestasGlobal.length * 1.25).toFixed(2) + " €";
-    actualizarLista();
+    document.getElementById('outC').innerText = (apuestasGlobal.length * 1.25).toFixed(2) + "€";
+    render();
 }
 
-function actualizarLista() {
-    let maxA = apuestasGlobal.length > 0 ? Math.max(...apuestasGlobal.map(a => a.aciertos)) : 0;
-    document.getElementById('listadoApuestas').innerHTML = apuestasGlobal.map((ap, i) => `
-        <div class="linea ${ap.aciertos > 0 && ap.aciertos === maxA ? 'ganadora' : ''}">
-            <span>[${i+1}] ${ap.signos.split('').join(' ')}</span>
-            <span style="color:#63b3ed; font-weight:bold;">${ap.aciertos} ac.</span>
+function render() {
+    let max = apuestasGlobal.length > 0 ? Math.max(...apuestasGlobal.map(a => a.ac)) : 0;
+    document.getElementById('listadoApuestas').innerHTML = apuestasGlobal.map((a, i) => `
+        <div class="linea ${a.ac > 0 && a.ac === max ? 'ganadora' : ''}">
+            <span>[${i+1}] ${a.s.split('').join(' ')}</span>
+            <span style="color:#63b3ed; font-weight:bold;">${a.ac} ac.</span>
         </div>`).join('');
 }
 
 function escrutar() {
     if(apuestasGlobal.length === 0) return;
-    let rU = 0, rB = 0, rD = 0;
+    let rU=0, rB=0, rD=0;
     let real = indicesE8.map(idx => {
-        let val = (document.getElementById(`res${idx}`).value || "").toUpperCase();
-        if(val === '1') rU++;
-        // Recalcular Base/Difícil del partido real
-        let q1 = parseFloat(document.getElementById(`q1_${idx}`).value);
-        let qX = parseFloat(document.getElementById(`qX_${idx}`).value);
-        let q2 = parseFloat(document.getElementById(`q2_${idx}`).value);
-        let qs = [{s:'1',v:q1}, {s:'X',v:qX}, {s:'2',v:q2}].sort((a,b)=>a.v-b.v);
-        if(val === qs[0].s) rB++;
-        if(val === qs[2].s) rD++;
-        return val;
+        let v = (document.getElementById(`res${idx}`).value || "").toUpperCase();
+        if(v === '1') rU++;
+        let qs = [{s:'1',v:parseFloat(document.getElementById(`q1_${idx}`).value)},{s:'X',v:parseFloat(document.getElementById(`qX_${idx}`).value)},{s:'2',v:parseFloat(document.getElementById(`q2_${idx}`).value)}].sort((a,b)=>a.v-b.v);
+        if(v === qs[0].s) rB++; if(v === qs[2].s) rD++;
+        return v;
     });
-
     if(real.includes("")) return alert("Pon resultados reales.");
-
-    document.getElementById('rUnos').innerText = rU;
-    document.getElementById('rBases').innerText = rB;
-    document.getElementById('rDificiles').innerText = rD;
-
-    let maxA = 0;
-    apuestasGlobal.forEach(ap => {
-        let a = 0; let s = ap.signos.split('');
-        for(let j=0; j<s.length; j++) if(s[j] !== "_" && s[j] === real[j]) a++;
-        ap.aciertos = a; if(a > maxA) maxA = a;
+    document.getElementById('rUnos').innerText = rU; document.getElementById('rBases').innerText = rB; document.getElementById('rDificiles').innerText = rD;
+    let max = 0;
+    apuestasGlobal.forEach(a => {
+        let c = 0, s = a.s.split('');
+        for(let j=0; j<s.length; j++) if(s[j] !== "_" && s[j] === real[j]) c++;
+        a.ac = c; if(c > max) max = c;
     });
-    document.getElementById('outMax').innerText = maxA;
-    apuestasGlobal.sort((a,b)=>b.aciertos - a.aciertos);
-    actualizarLista();
+    document.getElementById('outMax').innerText = max;
+    apuestasGlobal.sort((a,b) => b.ac - a.ac); render();
 }
 
 function guardar() {
-    let data = { j: document.getElementById('jornada').value, f: { u: [...filtros.unos], b: [...filtros.bases], d: [...filtros.dificiles], p: document.getElementById('fPct').value }, c: [] };
-    for(let i=1; i<=14; i++) data.c.push({ c1: document.getElementById(`q1_${i}`).value, cX: document.getElementById(`qX_${i}`).value, c2: document.getElementById(`q2_${i}`).value, res: document.getElementById(`res${i}`).value, chk: document.getElementById(`chk${i}`).checked, p: document.getElementById(`p${i}`).value });
-    let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], {type:"application/json"})); a.download="quiniela.json"; a.click();
+    let d = { j: document.getElementById('jornada').value, f: { u: [...filtros.unos], b: [...filtros.bases], d: [...filtros.dificiles], p: document.getElementById('fPct').value }, c: [] };
+    for(let i=1; i<=14; i++) d.c.push({ c1: document.getElementById(`q1_${i}`).value, cX: document.getElementById(`qX_${i}`).value, c2: document.getElementById(`q2_${i}`).value, r: document.getElementById(`res${i}`).value, chk: document.getElementById(`chk${i}`).checked, p: document.getElementById(`p${i}`).value });
+    let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(d)], {type:"application/json"})); a.download="quiniela.json"; a.click();
 }
 
 function abrir(event) {
-    let reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            let d = JSON.parse(e.target.result);
-            document.getElementById('jornada').value = d.j || 55;
-            let f = d.f || d.filtros || {};
-            filtros.unos = new Set(f.u || f.unos || []); 
-            filtros.bases = new Set(f.b || f.bases || []); 
-            filtros.dificiles = new Set(f.d || f.doses || []);
-            document.getElementById('fPct').value = f.p || 100;
-            document.getElementById('pctVal').innerText = (f.p || 100) + "%";
-            crearBotones('gridUnos', filtros.unos, 8); crearBotones('gridBases', filtros.bases, 8); crearBotones('gridDificiles', filtros.dificiles, 8);
-            (d.c || d.cuotas || []).forEach((c, i) => { 
-                let idx = i+1; document.getElementById(`q1_${idx}`).value = c.c1; document.getElementById(`qX_${idx}`).value = c.cX; document.getElementById(`q2_${idx}`).value = c.c2; 
-                document.getElementById(`res${idx}`).value = c.res || ""; document.getElementById(`chk${idx}`).checked = c.chk; document.getElementById(`p${idx}`).value = c.p || "1X2"; 
-            });
-            actualizarBD(); alert("Cargado.");
-        } catch(err) { alert("Error al cargar."); }
+    if(!event.target.files.length) return;
+    let r = new FileReader();
+    r.onload = (e) => {
+        let d = JSON.parse(e.target.result); let f = d.f || d.filtros;
+        filtros.unos = new Set(f.u || f.unos); filtros.bases = new Set(f.b || f.bases); filtros.dificiles = new Set(f.d || f.doses);
+        document.getElementById('fPct').value = f.p || 100; document.getElementById('pctVal').innerText = (f.p || 100) + "%";
+        crearBotones('gridUnos', filtros.unos); crearBotones('gridBases', filtros.bases); crearBotones('gridDificiles', filtros.dificiles);
+        (d.c || d.cuotas).forEach((c, i) => { 
+            let idx = i+1; document.getElementById(`q1_${idx}`).value = c.c1; document.getElementById(`qX_${idx}`).value = c.cX; document.getElementById(`q2_${idx}`).value = c.c2; 
+            document.getElementById(`res${idx}`).value = c.r || c.res || ""; document.getElementById(`chk${idx}`).checked = c.chk; document.getElementById(`p${idx}`).value = c.p || "1X2"; 
+        });
+        actualizarBD(); alert("Cargado.");
     };
-    if(event.target.files) reader.readAsText(event.target.files[0]);
+    r.readAsText(event.target.files[0]);
 }
 </script>
 </body>
 </html>
+
+
 
 
 
