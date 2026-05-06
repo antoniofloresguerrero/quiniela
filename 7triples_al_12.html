@@ -400,7 +400,7 @@ function generar() {
 
     // 3. Reducción Optimizada para no colgar el PC
     const iterarReduccion = () => {
-        if (noCub.size > uni.length * (1 - target) && apuestasGlobal.length < 500) {
+        if (noCub.size > uni.length * (1 - target) && apuestasGlobal.length < 1200) {
             let mejorA = "", mejorHS = null, maxC = -1;
             
             // Limitamos la búsqueda a una muestra para ganar velocidad
