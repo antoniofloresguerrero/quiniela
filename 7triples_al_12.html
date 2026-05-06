@@ -4,6 +4,111 @@
     <meta charset="UTF-8">
     <title>Analizador Elige 8  Final</title>
     <style>
+
+/* Contenedor de las dos filas de números */
+.filtro-seccion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #2d3748;
+    border-radius: 8px;
+    min-width: 220px;
+}
+
+.grid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Espacio entre la fila superior e inferior */
+}
+
+.btn-grid {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+}
+/* Botones más grandes y legibles */
+.btn-num {
+    width: 32px;
+    height: 32px;
+    background: #4a5568;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.btn-num:hover {
+    background: #718096;
+}
+
+.btn-num.active {
+    background: #48bb78; /* Verde al estar activo */
+    box-shadow: 0 0 8px rgba(72, 187, 120, 0.6);
+}
+
+/* Fila de 1 a 8: 8 columnas */
+.row-1-8 {
+    grid-template-columns: repeat(8, 1fr);
+}
+
+/* Fila de 9 a 14: 6 columnas (se verá centrada o alineada bajo la anterior) */
+.row-9-14 {
+    grid-template-columns: repeat(6, 1fr);
+    justify-content: center;
+}
+
+/* Estilo para los botoncitos de números */
+.num-btn {
+    width: 25px;
+    height: 25px;
+    font-size: 11px;
+    background: #4a5568;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+}
+.num-btn.active {
+    background: #48bb78; /* Verde cuando el filtro está activo */
+}
+
+.btn-download {
+    background: #d69e2e !important; /* Color mostaza/dorado */
+    color: white;
+}
+.btn-download:hover {
+    background: #b7791f !important;
+}
+
+
+
+
+
+/* css para los botones */
+.action-grid {
+    display: flex;
+    flex-direction: column; /* Para que los botones sigan uno encima de otro */
+    align-items: center;    /* Centra los botones horizontalmente en su div */
+    justify-content: center; /* Centra los botones verticalmente en su div */
+    text-align: center;
+    min-width: 150px;       /* Ajusta según el ancho de tus botones */
+    margin: 0 auto;         /* Si quieres que el div se centre respecto a los otros */
+}
+/* Si quieres que los botones ocupen el mismo ancho */
+.btn-main {
+    width: 100%;
+    max-width: 150px;
+}
+
+
+
+
         body { font-family: 'Segoe UI', sans-serif; margin: 10px; background: #1a202c; color: #fff; font-size: 11px; }
         .container { background: #2d3748; padding: 15px; border-radius: 10px; max-width: 1300px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .header-box { background: #1a202c; padding: 8px 15px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; border: 1px solid #4a5568; }
@@ -21,7 +126,7 @@
         .btn-gen { background: #38a169; } .btn-esc { background: #3182ce; } .btn-save { background: #d69e2e; } .btn-open { background: #805ad5; }
         table { width: 100%; border-collapse: collapse; background: #1a202c; margin-bottom: 10px; font-size: 10px; }
         th, td { padding: 3px; text-align: center; border: 1px solid #4a5568; }
-        input { background: #1a202c; border: 1px solid #4a5568; color: #fff; text-align: center; font-size: 10px; width: 32px; }
+        input { background: #1a202c; border: 1px solid #4a5568; color: #fff; text-align: center; font-size: 10px; width: 45px; }
         #listadoApuestas { width: 100%; height: 250px; font-family: monospace; background: #000; color: #00ff00; padding: 10px; border-radius: 5px; overflow-y: scroll; border: 1px solid #4a5568; font-size: 11px; }
         .linea { border-bottom: 1px solid #2d3748; padding: 4px; display: flex; justify-content: space-between; align-items: center; }
         .ganadora { background: #2d5a27 !important; color: #fff; font-weight: bold; }
@@ -30,11 +135,16 @@
 <body>
 <div class="container">
     <div class="header-box">
-        <div><b>Distancias:</b> 
-            <select id="selHuecos" style="background:#2d3748; color:#fff; border:1px solid #4a5568; border-radius:4px;">
-                <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
-            </select>
-        </div>
+       <b>Distancias:</b> 
+<select id="selHuecos" style="background:#2d3748; color:#fff; border:1px solid #4a5568; border-radius:4px; padding: 2px 5px;">
+    <option value="1">1</option>
+    <option value="2" selected>2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+</select>
+
         <div style="flex-grow: 1; display: flex; align-items: center; gap: 10px;">
             <b>Cobertura:</b> <input type="range" id="fPct" min="1" max="100" value="100" oninput="document.getElementById('pctVal').innerText = this.value + '%'" style="flex-grow:1">
             <span id="pctVal" style="font-weight:bold; color:#63b3ed; width:35px;">100%</span>
@@ -47,46 +157,181 @@
             <div class="real-stats">REAL -> U:<b id="rUnos">-</b> | B:<b id="rBases">-</b> | D:<b id="rDificiles">-</b></div>
         </div>
     </div>
-    <div class="panel-superior">
-        <div class="filtro-seccion"><h3>Unos</h3><div class="btn-grid" id="gridUnos"></div></div>
-        <div class="filtro-seccion"><h3>Bases</h3><div class="btn-grid" id="gridBases"></div></div>
-        <div class="filtro-seccion"><h3>Difíciles</h3><div class="btn-grid" id="gridDificiles"></div></div>
-        <div class="action-grid">
-            <button class="btn-main btn-gen" onclick="generar()">GENERAR</button>
-            <button class="btn-main btn-esc" onclick="escrutar()">ESCRUTAR</button>
-            <button class="btn-main btn-save" onclick="guardar()">GUARDAR</button>
-            <button class="btn-main btn-open" onclick="document.getElementById('inputOpen').click()">ABRIR</button>
-            <input type="file" id="inputOpen" style="display:none" onchange="abrir(event)">
-        </div>
+   <div class="panel-superior">
+    <!-- Unos -->
+    <div class="filtro-seccion">
+        <h3>Unos</h3>
+        <div id="gridUnos1" class="btn-grid"></div> <!-- ID con 1 -->
+        <div id="gridUnos2" class="btn-grid"></div> <!-- ID con 2 -->
     </div>
+    <!-- Bases -->
+    <div class="filtro-seccion">
+        <h3>Bases</h3>
+        <div id="gridBases1" class="btn-grid"></div> <!-- ID con 1 -->
+        <div id="gridBases2" class="btn-grid"></div> <!-- ID con 2 -->
+    </div>
+    <!-- Difíciles -->
+    <div class="filtro-seccion">
+        <h3>Difíciles</h3>
+        <div id="gridDificiles1" class="btn-grid"></div> <!-- ID con 1 -->
+        <div id="gridDificiles2" class="btn-grid"></div> <!-- ID con 2 -->
+    </div>
+
+    <!-- Botonera -->
+    <div class="action-grid">
+        <button class="btn-main btn-gen" onclick="generar()">GENERAR</button>
+        <button class="btn-main btn-esc" onclick="escrutar()">ESCRUTAR</button>
+        <button class="btn-main btn-save" onclick="guardar()">GUARDAR</button>
+        <button class="btn-main btn-open" onclick="document.getElementById('inputOpen').click()">ABRIR</button>
+        <button class="btn-main btn-download" onclick="descargarRellenas()">DESCARGAR TXT</button>
+
+        <input type="file" id="inputOpen" style="display:none" onchange="abrir(event)">
+    </div>
+</div>
+
     <table id="mainTable">
         <thead><tr><th>P.</th><th>Pronóstico</th><th>E8</th><th>1</th><th>X</th><th>2</th><th>B / D</th><th style="background:#d69e2e">REAL</th></tr></thead>
         <tbody id="tablaBody"></tbody>
     </table>
     <div id="listadoApuestas"></div>
 </div>
+
+
+
+
 <script>
-let apuestasGlobal = []; let indicesE8 = [];
+function descargarRellenas() {
+    if (!apuestasGlobal.length) return alert("No hay apuestas para descargar.");
+    
+    // Obtenemos los signos Base de cada fila una sola vez
+    const basesFila = [];
+    for (let i = 1; i <= 14; i++) {
+        let q1 = parseFloat(document.getElementById(`q1_${i}`).value) || 0,
+            qX = parseFloat(document.getElementById(`qX_${i}`).value) || 0,
+            q2 = parseFloat(document.getElementById(`q2_${i}`).value) || 0;
+        let qs = [{s:'1',v:q1},{s:'X',v:qX},{s:'2',v:q2}].sort((a,b)=>a.v-b.v);
+        basesFila.push(qs[0].s); // El primero es el Base (cuota menor)
+    }
+
+    // Generamos el contenido del TXT
+    let contenido = apuestasGlobal.map(apuesta => {
+        let signos = apuesta.s.split('');
+        let rellena = signos.map((s, idx) => {
+            return s === "_" ? basesFila[idx] : s;
+        });
+        return rellena.join('');
+    }).join('\n');
+
+    // Descarga del archivo
+    let blob = new Blob([contenido], { type: 'text/plain' });
+    let a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "quiniela_rellena.txt";
+    a.click();
+}
+
+// Modificamos el render para que los huecos rellenos se vean de otro color (ej. Gris o Azul claro)
+function render() {
+    const basesFila = [];
+    for (let i = 1; i <= 14; i++) {
+        let q1 = parseFloat(document.getElementById(`q1_${i}`).value) || 0,
+            qX = parseFloat(document.getElementById(`qX_${i}`).value) || 0,
+            q2 = parseFloat(document.getElementById(`q2_${i}`).value) || 0;
+        let qs = [{s:'1',v:q1},{s:'X',v:qX},{s:'2',v:q2}].sort((a,b)=>a.v-b.v);
+        basesFila.push(qs[0].s);
+    }
+
+    let max = apuestasGlobal.length ? Math.max(...apuestasGlobal.map(a => a.ac)) : 0;
+    
+    document.getElementById('listadoApuestas').innerHTML = apuestasGlobal.map((a, i) => {
+        let signsHTML = a.s.split('').map((s, idx) => {
+            if (s === "_") {
+                // Signo base en otro color para el hueco
+                return `<span style="color: #718096; opacity: 0.6;">${basesFila[idx]}</span>`;
+            }
+            return `<span>${s}</span>`;
+        }).join(' ');
+
+        return `<div class="linea ${a.ac > 0 && a.ac === max ? 'ganadora' : ''}">
+            <span>[${i+1}] ${signsHTML}</span>
+            <span style="color:#63b3ed; font-weight:bold;">${a.ac} ac.</span>
+        </div>`;
+    }).join('');
+}
+
+
+// --- 1. CONFIGURACIÓN Y VARIABLES GLOBALES ---
+let apuestasGlobal = []; 
+let indicesE8 = [];
 const filtros = { unos: new Set(), bases: new Set(), dificiles: new Set() };
-function crearBotones(id, setRef) {
-    const c = document.getElementById(id); c.innerHTML = '';
-    for(let i=0; i<=8; i++) {
-        const b = document.createElement('button'); b.innerText = i; b.className = 'btn-num' + (setRef.has(i)?' active':'');
-        b.onclick = () => { if(setRef.has(i)) setRef.delete(i); else setRef.add(i); b.classList.toggle('active'); };
-        c.appendChild(b);
+
+// --- 2. GENERACIÓN DINÁMICA DE LA INTERFAZ ---
+function crearBotones() {
+    // Estos nombres deben coincidir con los de tu objeto 'filtros'
+    const secciones = ['Unos', 'Bases', 'Dificiles'];
+    
+    secciones.forEach(sec => {
+        // Buscamos exactamente los IDs de tu HTML: gridUnos1, gridUnos2...
+        const bloque1 = document.getElementById('grid' + sec + '1');
+        const bloque2 = document.getElementById('grid' + sec + '2');
+
+        if (bloque1 && bloque2) {
+            bloque1.innerHTML = '';
+            bloque2.innerHTML = '';
+
+            // Fila 1: del 0 al 8
+            for (let i = 0; i <= 8; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'btn-num';
+                btn.id = `btn${sec.toLowerCase()}${i}`; // ID para CSS y lógica: btnunos0, btnbases1...
+                btn.innerText = i;
+                btn.onclick = () => toggleFiltro(sec, i);
+                bloque1.appendChild(btn);
+            }
+            // Fila 2: del 9 al 14
+            for (let i = 9; i <= 14; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'btn-num';
+                btn.id = `btn${sec.toLowerCase()}${i}`;
+                btn.innerText = i;
+                btn.onclick = () => toggleFiltro(sec, i);
+                bloque2.appendChild(btn);
+            }
+        }
+    });
+}
+
+// Dibujar tabla de pronósticos
+const body = document.getElementById('tablaBody');
+if(body) {
+    body.innerHTML = '';
+    for(let i=1; i<=14; i++) {
+        body.innerHTML += `<tr><td>${i}</td><td><input type="text" id="p${i}" value="1X2"></td><td><input type="checkbox" id="chk${i}" ${i<=8?'checked':''}></td><td><input type="number" step="0.1" id="q1_${i}" value="1.8" oninput="actualizarBD()"></td><td><input type="number" step="0.1" id="qX_${i}" value="3.2" oninput="actualizarBD()"></td><td><input type="number" step="0.1" id="q2_${i}" value="4.5" oninput="actualizarBD()"></td><td id="inf${i}">-</td><td><input type="text" id="res${i}" style="width:36px; background:#2d3748; border:none; color:white;"></td></tr>`;
     }
 }
-crearBotones('gridUnos', filtros.unos); crearBotones('gridBases', filtros.bases); crearBotones('gridDificiles', filtros.dificiles);
-const body = document.getElementById('tablaBody');
-for(let i=1; i<=14; i++) {
-    body.innerHTML += `<tr><td>${i}</td><td><input type="text" id="p${i}" value="1X2"></td><td><input type="checkbox" id="chk${i}" ${i<=8?'checked':''}></td><td><input type="number" step="0.1" id="q1_${i}" value="1.8" oninput="actualizarBD()"></td><td><input type="number" step="0.1" id="qX_${i}" value="3.2" oninput="actualizarBD()"></td><td><input type="number" step="0.1" id="q2_${i}" value="4.5" oninput="actualizarBD()"></td><td id="inf${i}">-</td><td><input type="text" id="res${i}" style="width:20px; background:#2d3748; border:none; color:white;"></td></tr>`;
+
+// --- 3. LÓGICA DE FILTROS ---
+function toggleFiltro(tipo, num) {
+    const key = tipo.toLowerCase();
+    const btn = document.getElementById(`btn${key}${num}`);
+    if (filtros[key].has(num)) {
+        filtros[key].delete(num);
+        if(btn) btn.classList.remove('active');
+    } else {
+        filtros[key].add(num);
+        if(btn) btn.classList.add('active');
+    }
 }
+
 function actualizarBD() {
     let sel = []; indicesE8 = [];
     for(let i=1; i<=14; i++) {
-        let q1 = parseFloat(document.getElementById(`q1_${i}`).value)||0, qX = parseFloat(document.getElementById(`qX_${i}`).value)||0, q2 = parseFloat(document.getElementById(`q2_${i}`).value)||0;
+        let q1 = parseFloat(document.getElementById(`q1_${i}`).value)||0,
+            qX = parseFloat(document.getElementById(`qX_${i}`).value)||0,
+            q2 = parseFloat(document.getElementById(`q2_${i}`).value)||0;
         let qs = [{s:'1',v:q1},{s:'X',v:qX},{s:'2',v:q2}].sort((a,b)=>a.v-b.v);
-        document.getElementById(`inf${i}`).innerText = `B:${qs[0].s}|D:${qs[2].s}`;
+        const info = document.getElementById(`inf${i}`);
+        if(info) info.innerText = `B:${qs[0].s}|D:${qs[2].s}`;
         if(document.getElementById(`chk${i}`).checked) {
             sel.push({ p: document.getElementById(`p${i}`).value.toUpperCase().split(''), b: qs[0].s, d: qs[2].s });
             indicesE8.push(i);
@@ -94,51 +339,116 @@ function actualizarBD() {
     }
     return sel;
 }
-actualizarBD();
+
+// --- 4. MOTOR ---
 function generar() {
-    const sel = actualizarBD(); const target = parseInt(document.getElementById('fPct').value)/100; const nH = parseInt(document.getElementById('selHuecos').value);
+    const sel = actualizarBD(); 
+    const target = parseInt(document.getElementById('fPct').value) / 100; 
+    const nH = parseInt(document.getElementById('selHuecos').value);
     let uni = [];
+
+    // 1. Generar combinaciones base (Filtrado)
     function gen(idx, comb, u, b, d) {
-        if(idx === sel.length) {
-            if((filtros.unos.size===0||filtros.unos.has(u))&&(filtros.bases.size===0||filtros.bases.has(b))&&(filtros.dificiles.size===0||filtros.dificiles.has(d))) uni.push(comb.join(''));
+        if (idx === sel.length) {
+            if ((filtros.unos.size === 0 || filtros.unos.has(u)) &&
+                (filtros.bases.size === 0 || filtros.bases.has(b)) &&
+                (filtros.dificiles.size === 0 || filtros.dificiles.has(d))) {
+                uni.push(comb.join(''));
+            }
             return;
         }
-        sel[idx].p.forEach(s => gen(idx+1, [...comb, s], u+(s==='1'?1:0), b+(s===sel[idx].b?1:0), d+(s===sel[idx].d?1:0)));
+        sel[idx].p.forEach(s => gen(idx + 1, [...comb, s], u + (s === '1' ? 1 : 0), b + (s === sel[idx].b ? 1 : 0), d + (s === sel[idx].d ? 1 : 0)));
     }
+
     gen(0, [], 0, 0, 0);
-    if(!uni.length) return alert("Filtro sin resultados.");
+    if (!uni.length) return alert("Filtro sin resultados.");
     document.getElementById('outF').innerText = uni.length;
-    let noCub = new Set(uni); apuestasGlobal = [];
-    const hCombos = []; function cber(s, a) { if(a.length===nH){hCombos.push([...a]);return;} for(let i=s;i<sel.length;i++) cber(i+1, [...a,i]); }
-    cber(0, []);
-    while(noCub.size > uni.length*(1-target) && apuestasGlobal.length < uni.length) {
-        let mejorA = "", mejorHS = null, maxC = -1, mejoresC = [];
-        let pool = Array.from(noCub).slice(0, 300);
-        for(let bStr of pool) {
-            for(let hs of hCombos) {
-                let cur = []; function chk(hI, cb) {
-                    if(hI===nH) { let s = cb.join(''); if(noCub.has(s)) cur.push(s); return; }
-                    ['1','X','2'].forEach(sig => { let ncb = [...cb]; ncb[hs[hI]] = sig; chk(hI+1, ncb); });
-                }
-                chk(0, bStr.split(''));
-                if(cur.length > maxC) { maxC = cur.length; mejorA = bStr; mejorHS = hs; mejoresC = cur; }
-                if(maxC >= Math.pow(3, nH)) break;
-            }
-            if(maxC >= Math.pow(3, nH)) break;
-        }
-        if(maxC <= 0) break;
-        mejoresC.forEach(s => noCub.delete(s));
-        let v = mejorA.split(''); mejorHS.forEach(idx => v[idx] = "_");
-        apuestasGlobal.push({ s: v.join(''), ac: 0 });
+
+    let noCub = new Set(uni); 
+    apuestasGlobal = [];
+    
+    // 2. Pre-calcular posiciones de huecos
+    const hCombos = []; 
+    function cber(s, a) { 
+        if (a.length === nH) { hCombos.push([...a]); return; } 
+        for (let i = s; i < sel.length; i++) cber(i + 1, [...a, i]); 
     }
-    document.getElementById('outR').innerText = apuestasGlobal.length;
-    document.getElementById('outC').innerText = (apuestasGlobal.length*1.25).toFixed(2)+"€";
-    render();
+    cber(0, []);
+
+    // 3. Reducción Optimizada para no colgar el PC
+    const iterarReduccion = () => {
+        if (noCub.size > uni.length * (1 - target) && apuestasGlobal.length < 500) {
+            let mejorA = "", mejorHS = null, maxC = -1;
+            
+            // Limitamos la búsqueda a una muestra para ganar velocidad
+            let pool = Array.from(noCub).slice(0, 50); 
+            let muestraH = hCombos.length > 100 ? 100 : hCombos.length;
+
+            for (let bStr of pool) {
+                for (let i = 0; i < muestraH; i++) {
+                    // Si hay muchas posiciones, cogemos una al azar; si hay pocas, las recorremos
+                    let hs = hCombos.length > 100 ? hCombos[Math.floor(Math.random() * hCombos.length)] : hCombos[i];
+                    
+                    let cur = [];
+                    function chk(hI, cb) {
+                        if (hI === nH) { 
+                            let s = cb.join(''); 
+                            if (noCub.has(s)) cur.push(s); 
+                            return; 
+                        }
+                        ['1', 'X', '2'].forEach(sig => { 
+                            let ncb = [...cb]; ncb[hs[hI]] = sig; 
+                            chk(hI + 1, ncb); 
+                        });
+                    }
+                    chk(0, bStr.split(''));
+
+                    if (cur.length > maxC) {
+                        maxC = cur.length; mejorA = bStr; mejorHS = hs; 
+                        var mejoresC = cur;
+                    }
+                    if (maxC >= Math.pow(3, nH)) break;
+                }
+            }
+
+            if (maxC > 0) {
+                mejoresC.forEach(s => noCub.delete(s));
+                let v = mejorA.split(''); 
+                mejorHS.forEach(idx => v[idx] = "_");
+                apuestasGlobal.push({ s: v.join(''), ac: 0 });
+                
+                // Actualizar interfaz cada 5 apuestas para no bloquear
+                if(apuestasGlobal.length % 5 === 0) {
+                    document.getElementById('outR').innerText = apuestasGlobal.length;
+                    document.getElementById('outC').innerText = (apuestasGlobal.length * 0.75).toFixed(2) + "€";
+                }
+                
+                // Usar setTimeout para dejar que el navegador respire
+                setTimeout(iterarReduccion, 0);
+            } else {
+                finalizar();
+            }
+        } else {
+            finalizar();
+        }
+    };
+
+    const finalizar = () => {
+        document.getElementById('outR').innerText = apuestasGlobal.length;
+        document.getElementById('outC').innerText = (apuestasGlobal.length * 0.75).toFixed(2) + "€";
+        render();
+        alert("Generación completada.");
+    };
+
+    iterarReduccion();
 }
+
+
 function render() {
     let max = apuestasGlobal.length?Math.max(...apuestasGlobal.map(a=>a.ac)):0;
     document.getElementById('listadoApuestas').innerHTML = apuestasGlobal.map((a, i) => `<div class="linea ${a.ac>0&&a.ac===max?'ganadora':''}"><span>[${i+1}] ${a.s.split('').join(' ')}</span><span style="color:#63b3ed; font-weight:bold;">${a.ac} ac.</span></div>`).join('');
 }
+
 function escrutar() {
     if(!apuestasGlobal.length) return;
     let rU=0, rB=0, rD=0;
@@ -160,6 +470,7 @@ function escrutar() {
     document.getElementById('outMax').innerText = apuestasGlobal[0].ac;
     render();
 }
+
 function guardar() {
     let d = { f: { u:[...filtros.unos], b:[...filtros.bases], d:[...filtros.dificiles], p:document.getElementById('fPct').value }, c: [] };
     for(let i=1; i<=14; i++) {
@@ -168,14 +479,23 @@ function guardar() {
     }
     let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(d)], {type:"application/json"})); a.download="elige8.json"; a.click();
 }
+
 function abrir(ev) {
     if(!ev.target.files.length) return;
-    let r = new FileReader();
-    r.onload = (e) => {
+    let reader = new FileReader();
+    reader.onload = (e) => {
         let d = JSON.parse(e.target.result); let f = d.f || {};
         filtros.unos = new Set(f.u || []); filtros.bases = new Set(f.b || []); filtros.dificiles = new Set(f.d || []);
         document.getElementById('fPct').value = f.p || 100; document.getElementById('pctVal').innerText = (f.p || 100) + "%";
-        crearBotones('gridUnos', filtros.unos); crearBotones('gridBases', filtros.bases); crearBotones('gridDificiles', filtros.dificiles);
+        
+        crearBotones(); 
+        ['unos', 'bases', 'dificiles'].forEach(tipo => {
+            filtros[tipo].forEach(num => {
+                const btn = document.getElementById(`btn${tipo}${num}`);
+                if(btn) btn.classList.add('active');
+            });
+        });
+
         (d.c || []).forEach((c, i) => { 
             let idx = i+1; 
             if(document.getElementById(`p${idx}`)) document.getElementById(`p${idx}`).value = c.p || "1X2";
@@ -185,11 +505,19 @@ function abrir(ev) {
             if(document.getElementById(`res${idx}`)) document.getElementById(`res${idx}`).value = c.r || "";
             if(document.getElementById(`chk${idx}`)) document.getElementById(`chk${idx}`).checked = c.chk || false;
         });
-        actualizarBD(); alert("Cargado.");
+        actualizarBD();
     };
-    r.readAsText(ev.target.files[0]);
+    reader.readAsText(ev.target.files[0]);
 }
+
+// Lanzamiento inicial
+window.onload = () => {
+    crearBotones();
+    actualizarBD();
+};
 </script>
+
+
 </body>
 </html>
 
