@@ -149,13 +149,16 @@
             <b>Cobertura:</b> <input type="range" id="fPct" min="1" max="100" value="100" oninput="document.getElementById('pctVal').innerText = this.value + '%'" style="flex-grow:1">
             <span id="pctVal" style="font-weight:bold; color:#63b3ed; width:35px;">100%</span>
         </div>
-        <div class="resumen-total">
-            <div>Filtradas:<b id="outF">0</b></div>
-            <div>Apuestas:<b id="outR">0</b></div>
-            <div>Coste:<b id="outC">0.00€</b></div>
-            <div>Máx Ac:<b id="outMax">-</b></div>
-            <div class="real-stats">REAL -> U:<b id="rUnos">-</b> | B:<b id="rBases">-</b> | D:<b id="rDificiles">-</b></div>
-        </div>
+       <div class="resumen-total">
+    <div>Filtradas:<b id="outF">0</b></div>
+    <div>Apuestas:<b id="outR">0</b></div>
+    <div>Coste:<b id="outC">0.00€</b></div>
+    <div>Máx Ac:<b id="outMax">-</b></div>
+    <!-- Nueva sección añadida aquí -->
+    <div style="border-left: 1px solid #4a5568; padding-left: 10px;">Juego:<b id="outJuego" style="color: #63b3ed;">-</b></div>
+    
+    <div class="real-stats">REAL -> U:<b id="rUnos">-</b> | B:<b id="rBases">-</b> | D:<b id="rDificiles">-</b></div>
+</div>
     </div>
    <div class="panel-superior">
     <!-- Unos -->
@@ -183,7 +186,9 @@
         <button class="btn-main btn-esc" onclick="escrutar()">ESCRUTAR</button>
         <button class="btn-main btn-save" onclick="guardar()">GUARDAR</button>
         <button class="btn-main btn-open" onclick="document.getElementById('inputOpen').click()">ABRIR</button>
-        <button class="btn-main btn-download" onclick="descargarRellenas()">DESCARGAR TXT</button>
+        <button class="btn-main btn-download" onclick="descargarRellenas()">DESCARGAR</button>
+        <button class="btn-main" style="background: #2b6cb0;" onclick="descargarTxtHuecos()">DESCARGAR HUECO</button>
+
 
         <input type="file" id="inputOpen" style="display:none" onchange="abrir(event)">
     </div>
@@ -324,7 +329,13 @@ function toggleFiltro(tipo, num) {
 }
 
 function actualizarBD() {
-    let sel = []; indicesE8 = [];
+    let sel = []; 
+    indicesE8 = [];
+    
+    // 1. Nuevas variables para contar
+    let triples = 0;
+    let dobles = 0;
+
     for(let i=1; i<=14; i++) {
         let q1 = parseFloat(document.getElementById(`q1_${i}`).value)||0,
             qX = parseFloat(document.getElementById(`qX_${i}`).value)||0,
@@ -332,13 +343,25 @@ function actualizarBD() {
         let qs = [{s:'1',v:q1},{s:'X',v:qX},{s:'2',v:q2}].sort((a,b)=>a.v-b.v);
         const info = document.getElementById(`inf${i}`);
         if(info) info.innerText = `B:${qs[0].s}|D:${qs[2].s}`;
+        
         if(document.getElementById(`chk${i}`).checked) {
-            sel.push({ p: document.getElementById(`p${i}`).value.toUpperCase().split(''), b: qs[0].s, d: qs[2].s });
+            // 2. Leemos el valor del pronóstico para contar
+            let pronoTexto = document.getElementById(`p${i}`).value.toUpperCase();
+            if(pronoTexto.length === 3) triples++;
+            else if(pronoTexto.length === 2) dobles++;
+
+            sel.push({ p: pronoTexto.split(''), b: qs[0].s, d: qs[2].s });
             indicesE8.push(i);
         }
     }
+
+    // 3. Actualizamos el ID "outJuego" en la barra superior
+    const outJuego = document.getElementById('outJuego');
+    if(outJuego) outJuego.innerText = `${triples}T, ${dobles}D`;
+
     return sel;
 }
+
 
 // --- 4. MOTOR ---
 function generar() {
@@ -515,6 +538,51 @@ window.onload = () => {
     crearBotones();
     actualizarBD();
 };
+
+function descargarTxtHuecos() {
+    // 1. Verificar si hay apuestas generadas
+    if (!apuestasGlobal || apuestasGlobal.length === 0) {
+        return alert("Primero debes pulsar GENERAR para crear las apuestas.");
+    }
+
+    try {
+        // 2. Unir las apuestas. Usamos ap.s que es donde está la cadena con "_"
+        // Nota: .split('').join(' ') añade un espacio entre signos para que sea legible
+        const contenido = apuestasGlobal.map(ap => {
+            if (ap && ap.s) {
+                return ap.s.split('').join(' ');
+            }
+            return "";
+        }).filter(linea => linea !== "").join('\n');
+
+        // 3. Crear el archivo para descargar
+        const blob = new Blob([contenido], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        
+        // 4. CORRECCIÓN DEL ERROR: Intentar leer jornada, si no existe usar "X"
+        const jornadaInput = document.getElementById('jornada');
+        const numJornada = jornadaInput ? jornadaInput.value : "X";
+        
+        a.href = url;
+        a.download = `quiniela_elige8_J${numJornada}_reducida.txt`;
+        
+        // 5. Ejecutar descarga
+        document.body.appendChild(a);
+        a.click();
+        
+        // 6. Limpiar memoria
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+    } catch (err) {
+        console.error("Error en la descarga:", err);
+        alert("Ocurrió un error al generar el archivo TXT.");
+    }
+}
+
+
+
 </script>
 
 
