@@ -60,7 +60,7 @@
         <div class="resumen-total">
     <div>Filtradas: <b id="outF">0</b></div>
     <div>Apuestas: <b id="outR">0</b></div>
-    <div>Coste: <b id="outC">0.00€</b></div>
+    <!--<div>Coste: <b id="outC">0.00€</b></div>-->
     <div>Aciertos: <b id="outMax" style="color: #48bb78;">-</b></div> <!-- Añadido Máximo -->
     <div style="border-left: 1px solid #4a5568; padding-left: 10px;">Juego: <b id="outJuego" style="color:#63b3ed;">-</b></div>
     <div class="real-stats">REAL -> U:<b id="rUnos">-</b> | B:<b id="rBases">-</b> | D:<b id="rDificiles">-</b></div>
@@ -164,7 +164,7 @@ function actualizarBD() {
             indicesE8.push(i);
         }
     }
-    document.getElementById('outJuego').innerText = `${t}T, ${d}D`;
+    document.getElementById('outJuego').innerText = `${t}T - ${d}D`;
     return sel;
 }
 
@@ -223,7 +223,7 @@ function generar() {
         pool = pool.filter(a => noCub.has(a));
     }
     document.getElementById('outR').innerText = apuestasGlobal.length;
-    document.getElementById('outC').innerText = (apuestasGlobal.length*1.25).toFixed(2)+"€";
+   // document.getElementById('outC').innerText = (apuestasGlobal.length*1.25).toFixed(2)+"€";
     render();
 }
 
