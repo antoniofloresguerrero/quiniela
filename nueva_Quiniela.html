@@ -100,6 +100,7 @@
 let apuestasGlobal = [];
 let indicesE8 = [];
 let universoExterno = []; // Almacén para la combinación cargada
+let universoCargado = []; // <--- AÑADE ESTA LÍNEA AQUÍ
 const filtros = { u1: new Set(), u2: new Set(), b1: new Set(), b2: new Set(), d1: new Set(), d2: new Set() };
 
 window.onload = () => {
@@ -148,17 +149,23 @@ function actualizarBD() {
         const elQ1 = document.getElementById(`q1_${i}`), elQX = document.getElementById(`qX_${i}`), elQ2 = document.getElementById(`q2_${i}`);
         if(!elQ1) continue;
         let qs = [{s:'1',v:parseFloat(elQ1.value)||0},{s:'X',v:parseFloat(elQX.value)||0},{s:'2',v:parseFloat(elQ2.value)||0}].sort((a,b)=>a.v-b.v);
-        document.getElementById(`inf${i}`).innerText = `B:${qs[0].s}|D:${qs[2].s}`;
+        
+        // Rellenamos la columna B/D
+        document.getElementById(`inf${i}`).innerText = `${qs[0].s}/${qs[2].s}`;
+        
         if(document.getElementById(`chk${i}`).checked){
             let pV = document.getElementById(`p${i}`).value.toUpperCase();
             if(pV.length===3) t++; else if(pV.length===2) d++;
-            sel.push({ p: pV.split(''), b: qs[0].s, d: qs[2].s, id: i });
+            
+            // IMPORTANTE: Guardamos 'idx' como i-1 (0 a 13)
+            sel.push({ p: pV.split(''), b: qs[0].s, d: qs[2].s, idx: i - 1 });
             indicesE8.push(i);
         }
     }
     document.getElementById('outJuego').innerText = `${t}T - ${d}D`;
     return sel;
 }
+
 
 function cargarCombinacionExterno(event) {
     const file = event.target.files[0];
@@ -186,22 +193,46 @@ function generar() {
     let uni = [];
 
     // Si hay combinación externa, la filtramos. Si no, generamos según tabla.
-    if(universoExterno.length > 0) {
-        universoExterno.forEach(linea => {
-            let u1=0, b1=0, d1=0, u2=0, b2=0, d2=0, combActual=[], ok=true;
-            for(let p of sel) {
-                let s = linea[p.id - 1]; // Extraemos el signo del archivo
-                if(!p.p.includes(s)) { ok=false; break; }
-                combActual.push(s);
-                const isU = s==='1', isB = s===p.b, isD = s===p.d;
-                if(p.id <= 8) { if(isU) u1++; if(isB) b1++; if(isD) d1++; }
-                else { if(isU) u2++; if(isB) b2++; if(isD) d2++; }
+    // BUSCA ESTE BLOQUE DENTRO DE generar() Y SUSTITÚYELO:
+if (universoCargado.length > 0) {
+    universoCargado.forEach(linea => {
+        let u1=0, b1=0, d1=0, u2=0, b2=0, d2=0, okP=true;
+        
+        for(let i=0; i<sel.length; i++){
+            // Usamos el índice real (0-13) guardado en actualizarBD
+            let s = linea[sel[i].idx]; 
+            
+            // FILTRO 1: ¿El signo está en mi pronóstico?
+            if(!sel[i].p.includes(s)) { okP = false; break; }
+            
+            // FILTRO 2: Contadores para Unos, Bases y Difíciles
+            const isU = s==='1', isB = s===sel[i].b, isD = s===sel[i].d;
+            if(sel[i].idx < 8) { // División 1 (Partidos 1-8)
+                if(isU) u1++; if(isB) b1++; if(isD) nd1++; 
+            } else { // División 2 (Partidos 9-14)
+                if(isU) u2++; if(isB) b2++; if(isD) nd2++;
             }
-            const ok1 = (filtros.u1.size===0 || filtros.u1.has(u1)) && (filtros.b1.size===0 || filtros.b1.has(b1)) && (filtros.d1.size===0 || filtros.d1.has(d1));
-            const ok2 = (filtros.u2.size===0 || filtros.u2.has(u2)) && (filtros.b2.size===0 || filtros.b2.has(b2)) && (filtros.d2.size===0 || filtros.d2.has(d2));
-            if(ok && ok1 && ok2) uni.push(combActual.join(''));
-        });
-    } else {
+        }
+
+        if (okP) {
+            // Comprobamos si cumple los botones de la interfaz
+            const okFiltros1 = (filtros.u1.size===0 || filtros.u1.has(u1)) && 
+                               (filtros.b1.size===0 || filtros.b1.has(b1)) && 
+                               (filtros.d1.size===0 || filtros.d1.has(d1));
+            const okFiltros2 = (filtros.u2.size===0 || filtros.u2.has(u2)) && 
+                               (filtros.b2.size===0 || filtros.b2.has(b2)) && 
+                               (filtros.d2.size===0 || filtros.d2.has(d2));
+
+            if(okFiltros1 && okFiltros2) {
+                // Si pasa todo, guardamos solo los signos de los partidos elegidos
+                let combActual = sel.map(p => linea[p.idx]);
+                uni.push(combActual.join(''));
+            }
+        }
+    });
+}
+
+    else {
         function gen(idx, comb, u1, b1, d1, u2, b2, d2) {
             if(idx === sel.length) {
                 const ok1 = (filtros.u1.size===0 || filtros.u1.has(u1)) && (filtros.b1.size===0 || filtros.b1.has(b1)) && (filtros.d1.size===0 || filtros.d1.has(d1));
@@ -236,7 +267,13 @@ function generar() {
                 let cur = [];
                 function chk(hI, cb) {
                     if(hI===nH) { let s = cb.join(''); if(noCub.has(s)) cur.push(s); return; }
-                    ['1','X','2'].forEach(sig => { let ncb = [...cb]; ncb[hs[hI]] = sig; chk(hI+1, ncb); });
+                    // Dentro de la función chk en generar()
+['1','X','2'].forEach(sig => { 
+    let ncb = [...cb]; 
+    ncb[sel[hs[hI]].idx] = sig; // <-- Cambia .id-1 por .idx
+    chk(hI + 1, ncb); 
+});
+
                 }
                 chk(0, bStr.split(''));
                 if(cur.length > maxN) { maxN = cur.length; mejorA = bStr; mejorHS = hs; mejoresC = cur; }
@@ -257,6 +294,8 @@ function generar() {
 function render() {
     const contenedor = document.getElementById('listadoApuestas');
     if (!contenedor) return;
+
+    // 1. Calculamos los signos base para los 14 partidos
     const basesFila = [];
     for (let i = 1; i <= 14; i++) {
         let q1 = parseFloat(document.getElementById(`q1_${i}`).value) || 0,
@@ -265,53 +304,96 @@ function render() {
         let qs = [{s:'1',v:q1},{s:'X',v:qX},{s:'2',v:q2}].sort((a,b)=>a.v-b.v);
         basesFila.push(qs[0].s);
     }
+
+    // 2. Buscamos el máximo de aciertos
     let maxA = apuestasGlobal.length ? Math.max(...apuestasGlobal.map(a => a.ac || 0)) : 0;
     if(document.getElementById('outMax')) document.getElementById('outMax').innerText = maxA;
 
+    // 3. Pintamos las apuestas respetando las 14 posiciones físicas
     contenedor.innerHTML = apuestasGlobal.map((a, i) => {
-        let signsHTML = a.s.split('').map((s, idx) => {
-            if (s === "_") return `<span style="color: #718096; opacity: 0.6;">${basesFila[indicesE8[idx]-1]}</span>`;
-            return `<span>${s}</span>`;
-        }).join(' ');
+        let signosArray = a.s.split(''); // Signos de la apuesta (ej: 8 o 12 signos)
+        let filaHTML = "";
+
+        // Recorremos los 14 partidos uno a uno
+        for (let p = 1; p <= 14; p++) {
+            // Buscamos si el partido 'p' está en nuestra selección E8
+            let idxEnSeleccion = indicesE8.indexOf(p);
+
+            if (idxEnSeleccion !== -1) {
+                // PARTIDO SELECCIONADO: Mostramos el signo de la apuesta
+                let signo = signosArray[idxEnSeleccion];
+                if (signo === "_") {
+                    // Es un hueco: lo ponemos en azul/gris usando la base
+                    filaHTML += `<span style="color: #718096; opacity: 0.6; margin-right:2px;">${basesFila[p-1]}</span> `;
+                } else {
+                    // Es un signo fijo: lo ponemos en verde brillante
+                    filaHTML += `<span style="color: #00ff00; font-weight: bold; margin-right:2px;">${signo}</span> `;
+                }
+            } else {
+                // PARTIDO NO SELECCIONADO: Lo ponemos en gris muy oscuro para mantener el hueco
+                filaHTML += `<span style="color: #4a5568; margin-right:2px; opacity: 0.3;">${basesFila[p-1]}</span> `;
+            }
+        }
+
         return `<div class="linea ${a.ac > 0 && a.ac === maxA ? 'ganadora' : ''}">
-            <span>[${i+1}] ${signsHTML}</span>
-            <span style="color:#63b3ed; font-weight:bold;">${a.ac || 0} ac.</span>
+            <span style="color: #a0aec0; margin-right: 8px;">[${(i+1).toString().padStart(2, '0')}]</span>
+            <span style="letter-spacing: 1px;">${filaHTML}</span>
+            <span style="color:#63b3ed; font-weight:bold; margin-left: 10px;">${a.ac || 0} ac.</span>
         </div>`;
     }).join('');
 }
 
+
 function escrutar() {
-    if(!apuestasGlobal || apuestasGlobal.length === 0) return;
-    let rU=0, rB=0, rD=0, realArr = [];
-    for(let i=1; i<=14; i++){
-        const elRes = document.getElementById(`res${i}`);
-        if(!elRes) continue;
-        let v = elRes.value.toUpperCase().trim();
-        realArr.push(v);
-        const elChk = document.getElementById(`chk${i}`);
-        if(elChk && elChk.checked && v !== ""){
-            if(v === '1') rU++;
-            let q1 = parseFloat(document.getElementById(`q1_${i}`).value) || 0, qX = parseFloat(document.getElementById(`qX_${i}`).value) || 0, q2 = parseFloat(document.getElementById(`q2_${i}`).value) || 0;
-            let qs = [{s:'1',v:q1},{s:'X',v:qX},{s:'2',v:q2}].sort((a,b)=>a.v-b.v);
-            if(v === qs[0].s) rB++; if(v === qs[2].s) rD++;
-        }
+    if(!apuestasGlobal.length) return;
+    
+    let real = [];
+    let pronos = [];
+    // 1. Recogemos resultados reales y los pronósticos de la tabla
+    for(let i=1; i<=14; i++) {
+        real.push(document.getElementById(`res${i}`).value.toUpperCase().trim());
+        pronos.push(document.getElementById(`p${i}`).value.toUpperCase().trim());
     }
-    document.getElementById('rUnos').innerText = rU; document.getElementById('rBases').innerText = rB; document.getElementById('rDificiles').innerText = rD;
-    let maxA = 0;
-    apuestasGlobal.forEach(apuesta => {
-        let aciertos = 0;
-        let signos = apuesta.s.split('');
-        for(let j=0; j < signos.length; j++) {
-            let numPartidoReal = indicesE8[j];
-            if(signos[j] !== "_" && signos[j] === realArr[numPartidoReal - 1]) aciertos++;
+
+    let gMax = 0;
+    apuestasGlobal.forEach(ap => {
+        let hits = 0;
+        let s = ap.s.split(''); // La apuesta con huecos
+        
+        for(let j=0; j < s.length; j++) {
+            let pIdx = indicesE8[j] - 1; 
+            let resReal = real[pIdx];
+            let pronoDelPartido = pronos[pIdx];
+            let signoEnApuesta = s[j];
+
+            if(resReal !== "") {
+                // CASO 1: Es un signo fijo (1, X, 2) y coincide con el real
+                if(signoEnApuesta !== "_" && signoEnApuesta === resReal) {
+                    hits++;
+                } 
+                // CASO 2: Es un HUECO (_) y el resultado real ESTÁ en el pronóstico
+                else if(signoEnApuesta === "_" && pronoDelPartido.includes(resReal)) {
+                    hits++;
+                }
+            }
         }
-        apuesta.ac = aciertos;
-        if(aciertos > maxA) maxA = aciertos;
+        
+        // REGLA ELIGE 8: El máximo premio posible es 8
+        // Si tu sistema de 9 o 12 partidos acierta 9 o 10, te marca 8 (objetivo cumplido)
+        ap.ac = (hits > 8) ? 8 : hits;
+        
+        if(ap.ac > gMax) gMax = ap.ac;
     });
-    if(document.getElementById('outMax')) document.getElementById('outMax').innerText = maxA;
-    apuestasGlobal.sort((a,b) => (b.ac || 0) - (a.ac || 0));
+
+    // Actualizar el marcador superior (Máximo acierto encontrado)
+    if(document.getElementById('outMax')) document.getElementById('outMax').innerText = gMax;
+
+    // Ordenamos para que las de 8 (o el máximo) salgan primero
+    apuestasGlobal.sort((a,b) => b.ac - a.ac);
+    
     render();
 }
+
 
 function guardar() {
     let d = { f: { u1:[...filtros.u1], u2:[...filtros.u2], b1:[...filtros.b1], b2:[...filtros.b2], d1:[...filtros.d1], d2:[...filtros.d2], p:document.getElementById('fPct').value, h:document.getElementById('selHuecos').value }, c: [] };
