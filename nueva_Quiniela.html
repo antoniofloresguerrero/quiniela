@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Quiniela Principal - Profesional</title>
+    <title>Quiniela Cargar1X2</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 10px; background: #1a202c; color: #fff; font-size: 11px; }
         .container { background: #2d3748; padding: 15px; border-radius: 10px; max-width: 1300px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
@@ -346,10 +346,8 @@ function render() {
 
 function escrutar() {
     if(!apuestasGlobal.length) return;
-    
     let real = [];
     let pronos = [];
-    // 1. Recogemos resultados reales y los pronósticos de la tabla
     for(let i=1; i<=14; i++) {
         real.push(document.getElementById(`res${i}`).value.toUpperCase().trim());
         pronos.push(document.getElementById(`p${i}`).value.toUpperCase().trim());
@@ -358,41 +356,33 @@ function escrutar() {
     let gMax = 0;
     apuestasGlobal.forEach(ap => {
         let hits = 0;
-        let s = ap.s.split(''); // La apuesta con huecos
-        
+        let s = ap.s.split(''); 
         for(let j=0; j < s.length; j++) {
             let pIdx = indicesE8[j] - 1; 
             let resReal = real[pIdx];
-            let pronoDelPartido = pronos[pIdx];
-            let signoEnApuesta = s[j];
+            let pronoOriginal = pronos[pIdx];
+            let signoEnFila = s[j];
 
             if(resReal !== "") {
-                // CASO 1: Es un signo fijo (1, X, 2) y coincide con el real
-                if(signoEnApuesta !== "_" && signoEnApuesta === resReal) {
+                // Acierto si el signo fijo es igual al real
+                if(signoEnFila !== "_" && signoEnFila === resReal) {
                     hits++;
                 } 
-                // CASO 2: Es un HUECO (_) y el resultado real ESTÁ en el pronóstico
-                else if(signoEnApuesta === "_" && pronoDelPartido.includes(resReal)) {
+                // Acierto si es Hueco y el resultado real entra en el doble/triple
+                else if(signoEnFila === "_" && pronoOriginal.includes(resReal)) {
                     hits++;
                 }
             }
         }
-        
-        // REGLA ELIGE 8: El máximo premio posible es 8
-        // Si tu sistema de 9 o 12 partidos acierta 9 o 10, te marca 8 (objetivo cumplido)
-        ap.ac = (hits > 8) ? 8 : hits;
-        
-        if(ap.ac > gMax) gMax = ap.ac;
+        ap.ac = hits;
+        if(hits > gMax) gMax = hits;
     });
 
-    // Actualizar el marcador superior (Máximo acierto encontrado)
-    if(document.getElementById('outMax')) document.getElementById('outMax').innerText = gMax;
-
-    // Ordenamos para que las de 8 (o el máximo) salgan primero
+    document.getElementById('outMax').innerText = gMax;
     apuestasGlobal.sort((a,b) => b.ac - a.ac);
-    
     render();
 }
+
 
 
 function guardar() {
