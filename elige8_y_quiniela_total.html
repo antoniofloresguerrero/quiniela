@@ -466,13 +466,21 @@ input {
 </div>
 
         </div>
+<!-- Botón primario para calcular los datos -->
+<button onclick="ejecutarEscrutinio()" style="padding: 8px 12px; background: #38bdf8; color: #0f172a; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">Calcular Escrutinio</button>
+     <!-- Botón para ver/ocultar el detalle (puedes darle el estilo CSS que quieras) -->
+<button onclick="conmutarDetallePremios()" style="padding: 8px 12px; background: #38bdf8; color: #0f172a; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
+    Ver / Ocultar Detalle Premios
+</button>
 
-       <!-- Nueva columna de premios -->
-<div id="premiosList" style="width: 250px; max-height: 550px; overflow-y: auto; background: #1e293b; border-radius: 8px; padding: 10px; border: 1px solid #334155;">
-    <h4 style="color: #38bdf8; text-align: center; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 5px;">Detalle Premios</h4>
-    <!-- IMPORTANTE: Este ID debe ser 'listaItems' -->
+<!-- Nueva columna de premios (Empieza oculta con display:none) -->
+<div id="premiosList" style="display: none; width: 250px; max-height: 550px; overflow-y: auto; background: #1e293b; border-radius: 8px; padding: 10px; border: 1px solid #334155;">
+    <h4 style="color: #38bdf8; text-align: center; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 5px; font-family: sans-serif;">Detalle Premios</h4>
+    
+    <!-- Aquí dentro se inyectarán las apuestas con formato monospace -->
     <div id="listaItems" style="font-family: monospace; font-size: 0.85em; color: white;"></div>
 </div>
+
     </div>
 </div>
 
@@ -485,6 +493,7 @@ input {
 
 
 <script>
+    let apuestasPremiadasGuardadas = [];
     let validas = [], idx = 0;
 
     window.onload = () => { generarBotonesFiltro(); cargarDatos(); };
@@ -690,9 +699,9 @@ function calcularPremios() {
     const partidosE8 = [];
     let hayResultados = false;
 
-    // Colores configurados
-    const coloresQ = { 14: "#fbbf24", 13: "#a855f7", 12: "#38bdf8", 11: "#f87171", 10: "#4ade80" };
-    const coloresE8 = { 8: "#38bdf8", 7: "#fbbf24", 6: "#4ade80", 5: "#94a3b8", 4: "#64748b" };
+    // Forzar el cierre del panel de premios al re-escrutar para evitar datos desactualizados
+    const capaContenedora = document.getElementById('premiosList');
+    if (capaContenedora) capaContenedora.style.display = "none";
 
     for (let i = 1; i <= 14; i++) {
         const val = document.getElementById(`R${i}`)?.value.trim().toUpperCase();
@@ -707,7 +716,9 @@ function calcularPremios() {
 
     let conteoQ = { 14:0, 13:0, 12:0, 11:0, 10:0 };
     let conteoE8 = { 8:0, 7:0, 6:0, 5:0, 4:0 };
-    let detalleHTML = "";
+    
+    // IMPORTANTE: Vaciamos el almacén antes de meter los nuevos cálculos
+    apuestasPremiadasGuardadas = [];
 
     validas.forEach((apuesta, index) => {
         let acQ = 0, acE8 = 0;
@@ -721,21 +732,17 @@ function calcularPremios() {
         if (acQ >= 10) conteoQ[acQ]++;
         if (acE8 >= 4) conteoE8[acE8]++;
 
-        // Solo mostramos en la lista si tiene algo relevante (11+ en Q o 6+ en E8)
-        if (acQ >= 11 || acE8 >= 6) {
-            const colQ = coloresQ[acQ] || "#ffffff";
-            const colE8 = coloresE8[acE8] || "#ffffff";
-            
-            detalleHTML += `
-                <div onclick="irA(${index})" style="display:flex; justify-content:space-between; padding:10px 12px; border-bottom:1px solid #334155; cursor:pointer; background:${index === idx ? '#2d3848' : 'transparent'}; align-items:center;">
-                    <span style="font-size:1.1em; color:#94a3b8;">#${index + 1}</span>
-                    <b style="color:${colQ}; font-size:1.2em; flex:1; text-align:center;">${acQ} Q</b>
-                    <b style="color:${colE8}; font-size:1.2em; flex:1; text-align:right;">${acE8} E8</b>
-                </div>`;
+        // GUARDADO EN MEMORIA: Registramos cualquier apuesta con premio mínimo
+        if (acQ >= 10 || acE8 >= 4) {
+            apuestasPremiadasGuardadas.push({
+                index: index,
+                acQ: acQ,
+                acE8: acE8
+            });
         }
     });
 
-    // Actualizar Panel
+    // Actualizar Panel de marcadores numéricos fijos
     for (let i = 10; i <= 14; i++) {
         const el = document.getElementById(`esc-${i}`);
         if(el) el.innerText = conteoQ[i];
@@ -745,12 +752,104 @@ function calcularPremios() {
         if(el) el.innerText = conteoE8[i];
     }
 
-    if (contenedorLista) {
-        contenedorLista.innerHTML = detalleHTML || "<div style='color:gray;text-align:center;padding:20px;'>Sin premios destacados</div>";
-    }
     if (typeof calcularPremios === 'function') calcularPremios();
 }
 
+function conmutarDetallePremios() {
+    const capaContenedora = document.getElementById('premiosList');
+    const contenedorLista = document.getElementById('listaItems');
+    if (!capaContenedora || !contenedorLista) return;
+
+    // CONMUTADOR: Si ya está abierto, lo cerramos de golpe
+    if (capaContenedora.style.display === "block") {
+        capaContenedora.style.display = "none";
+        return;
+    }
+
+    // CONTROL DE ERRORES: Si pulsan el botón antes de rellenar resultados reales
+    if (apuestasPremiadasGuardadas.length === 0) {
+        contenedorLista.innerHTML = "<div style='color:#64748b;text-align:center;padding:15px;font-family:sans-serif;'>Escruta primero introduciendo los resultados reales.</div>";
+        capaContenedora.style.display = "block";
+        return;
+    }
+
+    // Colores configurados para el formato de texto final
+    const coloresQ = { 14: "#fbbf24", 13: "#a855f7", 12: "#38bdf8", 11: "#f87171", 10: "#4ade80" };
+    const coloresE8 = { 8: "#38bdf8", 7: "#fbbf24", 6: "#4ade80", 5: "#94a3b8", 4: "#64748b" };
+    
+    let detalleHTML = "";
+
+    apuestasPremiadasGuardadas.forEach(item => {
+        // Muestra en el listado las apuestas que tengan más de 10 aciertos en Q o 4 en E8
+        if (item.acQ >= 10 || item.acE8 >= 4) {
+            const colQ = coloresQ[item.acQ] || "#94a3b8";
+            const colE8 = coloresE8[item.acE8] || "#64748b";
+            
+            // Sincronización automática con tu variable global de selección 'idx'
+            const esSeleccionada = (typeof idx !== 'undefined' && item.index === idx);
+            
+            // Generación de la fila utilizando los paddings de texto con 'String.padStart' para conservar el estilo monospace
+            detalleHTML += `
+                <div onclick="irA(${item.index})" style="display:flex; justify-content:space-between; padding:8px 6px; border-bottom:1px solid #334155; cursor:pointer; background:${esSeleccionada ? '#2d3848' : 'transparent'}; align-items:center;">
+                    <span style="color:#64748b; font-weight:bold;">#${String(item.index + 1).padStart(2, '0')}</span>
+                    <span style="color:${colQ}; font-weight:bold; flex:1; text-align:center;">${String(item.acQ).padStart(2, '0')} Q</span>
+                    <span style="color:${colE8}; font-weight:bold; width:55px; text-align:right;">${item.acE8} E8</span>
+                </div>`;
+        }
+    });
+
+    contenedorLista.innerHTML = detalleHTML || "<div style='color:#64748b;text-align:center;padding:15px;font-family:sans-serif;'>Sin premios destacados</div>";
+    
+    // Hacemos el DIV visible en la interfaz
+    capaContenedora.style.display = "block";
+}
+
+function conmutarDetallePremios() {
+    const capaContenedora = document.getElementById('premiosList');
+    const contenedorLista = document.getElementById('listaItems');
+    if (!capaContenedora || !contenedorLista) return;
+
+    // Si el panel de premios ya está visible, lo ocultamos por completo
+    if (capaContenedora.style.display === "block") {
+        capaContenedora.style.display = "none";
+        return;
+    }
+
+    // Si el usuario pulsa el botón pero no hay datos calculados en memoria
+    if (typeof apuestasPremiadasGuardadas === 'undefined' || apuestasPremiadasGuardadas.length === 0) {
+        contenedorLista.innerHTML = "<div style='color:#64748b;text-align:center;padding:15px;font-family:sans-serif;'>Sin premios que mostrar.<br>Ejecuta el escrutinio primero.</div>";
+        capaContenedora.style.display = "block";
+        return;
+    }
+
+    // Colores configurados para el texto monospace
+    const coloresQ = { 14: "#fbbf24", 13: "#a855f7", 12: "#38bdf8", 11: "#f87171", 10: "#4ade80" };
+    const coloresE8 = { 8: "#38bdf8", 7: "#fbbf24", 6: "#4ade80", 5: "#94a3b8", 4: "#64748b" };
+    
+    let detalleHTML = "";
+
+    apuestasPremiadasGuardadas.forEach(item => {
+        // Filtramos para mostrar solo apuestas con algún premio (10+ en Quiniela o 4+ en Elige8)
+        if (item.acQ >= 10 || item.acE8 >= 4) {
+            const colQ = coloresQ[item.acQ] || "#94a3b8";
+            const colE8 = coloresE8[item.acE8] || "#64748b";
+            
+            // Comprobación del índice seleccionado (asumiendo que 'idx' es tu variable global de selección)
+            const esSeleccionada = (typeof idx !== 'undefined' && item.index === idx);
+            
+            detalleHTML += `
+                <div onclick="irA(${item.index})" style="display:flex; justify-content:space-between; padding:8px 6px; border-bottom:1px solid #334155; cursor:pointer; background:${esSeleccionada ? '#2d3848' : 'transparent'}; align-items:center;">
+                    <span style="color:#64748b; font-weight:bold;">#${String(item.index + 1).padStart(2, '0')}</span>
+                    <span style="color:${colQ}; font-weight:bold; flex:1; text-align:center;">${String(item.acQ).padStart(2, ' ')} Q</span>
+                    <span style="color:${colE8}; font-weight:bold; width:55px; text-align:right;">${item.acE8} E8</span>
+                </div>`;
+        }
+    });
+
+    // Inyectamos el HTML generado y mostramos la caja de premios en la pantalla
+    contenedorLista.innerHTML = detalleHTML || "<div style='color:#64748b;text-align:center;padding:15px;font-family:sans-serif;'>Sin premios destacados</div>";
+    capaContenedora.style.display = "block";
+}
 
   function cambiarIdx(n) {
     let nuevoIdx = idx + n;
