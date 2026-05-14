@@ -406,10 +406,6 @@ input {
 </div>
 
 
-
-
-
-
     <!-- Garantías 
     <div class="filtro-card">
         <h3>Garantías</h3>
@@ -467,7 +463,7 @@ input {
 
         </div>
 <!-- Botón primario para calcular los datos -->
-<button onclick="ejecutarEscrutinio()" style="padding: 8px 12px; background: #38bdf8; color: #0f172a; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">Calcular Escrutinio</button>
+<button onclick="ejecutarEscrutinio()" style="padding: 8px 12px; background: #22d679; color: #0f172a; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">Calcular Escrutinio</button>
      <!-- Botón para ver/ocultar el detalle (puedes darle el estilo CSS que quieras) -->
 <button onclick="conmutarDetallePremios()" style="padding: 8px 12px; background: #38bdf8; color: #0f172a; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
     Ver / Ocultar Detalle Premios
@@ -839,11 +835,12 @@ function conmutarDetallePremios() {
             
             detalleHTML += `
                 <div onclick="irA(${item.index})" style="display:flex; justify-content:space-between; padding:8px 6px; border-bottom:1px solid #334155; cursor:pointer; background:${esSeleccionada ? '#2d3848' : 'transparent'}; align-items:center;">
-                    <span style="color:#64748b; font-weight:bold;">#${String(item.index + 1).padStart(2, '0')}</span>
-                    <span style="color:${colQ}; font-weight:bold; flex:1; text-align:center;">${String(item.acQ).padStart(2, ' ')} Q</span>
-                    <span style="color:${colE8}; font-weight:bold; width:55px; text-align:right;">${item.acE8} E8</span>
+                    <span style="font-size:1.5em;color:#38bdf8; font-weight:bold;">${String(item.index + 1).padStart(2, '0')}</span>
+                    <span style="font-size:1.5em;color:${colQ}; font-weight:bold; flex:1; text-align:center;">${String(item.acQ).padStart(2, ' ')} - Q   </span>
+                    <span style="font-size:1.5em;color:${colE8}; font-weight:bold; width:55px; text-align:right;">${item.acE8} - E8</span>
                 </div>`;
         }
+        
     });
 
     // Inyectamos el HTML generado y mostramos la caja de premios en la pantalla
