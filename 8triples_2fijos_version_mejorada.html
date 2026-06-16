@@ -47,7 +47,7 @@
 <body>
 <div class="container">
     <h1>Generador Elige 8</h1>
-    <p>Activar los partidos a jugar y seleccionar su signo (Fijos y Dobles). Los desmarcados serán triples reducidos.</p>
+    <p>Activar los partidos a jugar y seleccionar el check  y su signo (Fijos y Dobles). Los desmarcados serán triples reducidos.</p>
     
     <div class="grid-partidos">
         <script>
@@ -339,7 +339,7 @@ function ejecutarEscrutinioYOrdenacion() {
         lineasArchivo.push(item.linea);
     }
 
-    htmlBuilder += "<tr class='total-fila'><td colspan='3'>TOTAL COLUMNAS GENERADAS Y CLASIFICADAS:</td><td>" + registros.length + " apuestas</td></tr>";
+    htmlBuilder += "<tr class='total-fila'><td colspan='3'>TOTAL COLUMNAS GENERADAS:</td><td>" + registros.length + " apuestas</td></tr>";
     
     cuerpo.innerHTML = htmlBuilder;
     textoTxtDescarga = lineasArchivo.join("\r\n");
