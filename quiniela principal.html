@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
 
-    <title>Quiniela 2025-2026</title>
+    <title>Quiniela Original 2025-2026</title>
 <style>
 /* Contenedor horizontal ajustado */
 .herramientas-unificadas {
@@ -235,7 +235,8 @@ input {
         <div style="background: #334155; padding: 8px; border-radius: 8px; display: flex; align-items: center; gap: 10px;">
             <label>Jornada:</label>
             <select id="selector-jornada" class="in-equipo" onchange="cargarDatos()">
-                <option value="55">55</option><option value="56">56</option>
+                <option value="55">55</option>
+                <option value="64">64</option>
             </select>
         </div>
         <div style="background: #334155; padding: 8px; border-radius: 8px; display: flex; align-items: center; gap: 10px;">
@@ -1099,7 +1100,7 @@ async function generarApp(esModoE8) {
             let totalC = 0;
             let meta = Math.floor(univTotal.length * (pct / 100));
 
-            while (totalC < meta && pool.length > 0 && resRed.length < 74) {
+            while (totalC < meta && pool.length > 0 && resRed.length < 500) {
                 let rIdx = Math.floor(Math.random() * pool.length);
                 let elegida = pool.splice(rIdx, 1)[0];
                 resRed.push(elegida);
